@@ -392,7 +392,6 @@ class K8sServiceDiscovery(ServiceDiscovery):
             response = requests.get(url, headers=headers)
             response.raise_for_status()
             models = response.json()["data"]
-
             # Create a dictionary of model information
             model_info = {}
             for model in models:

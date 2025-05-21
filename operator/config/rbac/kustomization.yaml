@@ -38,3 +38,5 @@ resources:
 - pod_viewer_role.yaml
 - vllmrouter_service_account.yaml
 - vllmrouter_role_binding.yaml
+
+

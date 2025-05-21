@@ -154,7 +154,7 @@ async def get_engine_instances():
         None
 
     Returns:
-        JSONResponse: A JSON response containing the list of models.
+        JSONResponse: A JSON response containing the list of models and their relationships.
 
     Raises:
         Exception: If there is an error in retrieving the endpoint information.
