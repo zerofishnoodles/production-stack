@@ -134,9 +134,9 @@ async def show_models():
             model_card = ModelCard(
                 id=model_id,
                 object="model",
-                created=model_info["created"],
-                owned_by=model_info["owned_by"],
-                parent=model_info["parent"],
+                created=model_info.created,
+                owned_by=model_info.owned_by,
+                parent=model_info.parent,
             )
             model_cards.append(model_card)
             existing_models.add(model_id)
