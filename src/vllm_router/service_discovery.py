@@ -39,6 +39,43 @@ class ServiceDiscoveryType(enum.Enum):
     STATIC = "static"
     K8S = "k8s"
 
+@dataclass
+class ModelInfo:
+    """Information about a model including its relationships and metadata."""
+
+    id: str
+    object: str
+    created: int = 0
+    owned_by: str = "vllm"
+    root: Optional[str] = None
+    parent: Optional[str] = None
+    is_adapter: bool = False
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "ModelInfo":
+        """Create a ModelInfo instance from a dictionary."""
+        return cls(
+            id=data.get("id"),
+            object=data.get("object", "model"),
+            created=data.get("created", int(time.time())),
+            owned_by=data.get("owned_by", "vllm"),
+            root=data.get("root", None),
+            parent=data.get("parent", None),
+            is_adapter=data.get("parent") is not None,
+        )
+
+    def to_dict(self) -> Dict:
+        """Convert the ModelInfo instance to a dictionary."""
+        return {
+            "id": self.id,
+            "object": self.object,
+            "created": self.created,
+            "owned_by": self.owned_by,
+            "root": self.root,
+            "parent": self.parent,
+            "is_adapter": self.is_adapter
+        }
+
 
 class ModelInfo(BaseModel):
     """Information about a model including its relationships and metadata."""
@@ -264,6 +301,7 @@ class StaticServiceDiscovery(ServiceDiscovery):
                 parent=None,
                 is_adapter=False,
                 root=None,
+                created=int(time.time()),
             )
         }
 
