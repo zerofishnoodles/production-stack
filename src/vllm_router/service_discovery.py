@@ -38,6 +38,7 @@ class ServiceDiscoveryType(enum.Enum):
     STATIC = "static"
     K8S = "k8s"
 
+
 @dataclass
 class ModelInfo:
     """Information about a model including its relationships and metadata."""
@@ -72,8 +73,9 @@ class ModelInfo:
             "owned_by": self.owned_by,
             "root": self.root,
             "parent": self.parent,
-            "is_adapter": self.is_adapter
+            "is_adapter": self.is_adapter,
         }
+
 
 @dataclass
 class EndpointInfo:
