@@ -25,7 +25,6 @@ from typing import Dict, List, Optional
 import httpx
 import requests
 from kubernetes import client, config, watch
-from pydantic import BaseModel, Field
 
 from vllm_router import utils
 from vllm_router.log import init_logger
@@ -75,36 +74,6 @@ class ModelInfo:
             "parent": self.parent,
             "is_adapter": self.is_adapter
         }
-
-
-class ModelInfo(BaseModel):
-    """Information about a model including its relationships and metadata."""
-
-    id: str
-    object: str
-    created: int = Field(default_factory=lambda: int(time.time()))
-    owned_by: str = "vllm"
-    root: Optional[str] = None
-    parent: Optional[str] = None
-    is_adapter: bool = False
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "ModelInfo":
-        """Create a ModelInfo instance from a dictionary."""
-        return cls(
-            id=data.get("id"),
-            object=data.get("object", "model"),
-            created=data.get("created", int(time.time())),
-            owned_by=data.get("owned_by", "vllm"),
-            root=data.get("root", None),
-            parent=data.get("parent", None),
-            is_adapter=data.get("parent") is not None,
-        )
-
-    def to_dict(self) -> Dict:
-        """Convert the ModelInfo instance to a dictionary."""
-        return self.model_dump()
-
 
 @dataclass
 class EndpointInfo:
