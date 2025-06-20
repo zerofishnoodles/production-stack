@@ -44,12 +44,15 @@ class StaticDiscoveryTest:
         router_url: str = "http://localhost:30080",
         model: str = "facebook/opt-125m",
         log_file_path: str = "router.log",
+        result_dir: str = "/tmp/static-discovery-results",
+        routing_logic: str = "roundrobin",
     ):
         self.router_url = router_url
         self.model = model
         self.log_file_path = log_file_path
+        self.routing_logic = routing_logic
         self.request_id_to_endpoint = {}
-        self.results_dir = f"/tmp/static-discovery-results-{int(time.time())}"
+        self.results_dir = result_dir
         os.makedirs(self.results_dir, exist_ok=True)
 
     def send_request(self, request_id: str) -> bool:
@@ -172,6 +175,12 @@ class StaticDiscoveryTest:
         print_status("✅ Round-robin routing verification passed")
         return True
 
+    def test_kvaware_routing(self, num_requests: int = 20) -> bool:
+        """Test that requests are distributed in kvaware fashion"""
+        print_status(f"🧪 Testing kvaware routing with {num_requests} requests")
+
+        success_count = 0
+
     def test_health_endpoint(self) -> bool:
         """Test router health endpoint"""
         try:
@@ -214,8 +223,16 @@ class StaticDiscoveryTest:
                 return False
 
             # Test round-robin routing
-            if not self.test_roundrobin_routing():
-                return False
+            match self.routing_logic:
+                case "roundrobin":
+                    if not self.test_roundrobin_routing():
+                        return False
+                case "kvaware":
+                    if not self.test_kvaware_routing():
+                        return False
+                case _:
+                    print_error(f"❌ Unsupported routing logic: {self.routing_logic}")
+                    return False
 
             print_status("✅ Static discovery E2E test passed!")
             return True
@@ -242,11 +259,24 @@ def main():
     parser.add_argument(
         "--log-file-path", default="router.log", help="Path to router log file"
     )
-
+    parser.add_argument(
+        "--result-dir",
+        default="/tmp/static-discovery-results",
+        help="Path to result directory",
+    )
+    parser.add_argument(
+        "--routing-logic",
+        default="roundrobin",
+        help="Routing logic to use for testing",
+    )
     args = parser.parse_args()
 
     test = StaticDiscoveryTest(
-        router_url=args.router_url, model=args.model, log_file_path=args.log_file_path
+        router_url=args.router_url,
+        model=args.model,
+        log_file_path=args.log_file_path,
+        result_dir=args.result_dir,
+        routing_logic=args.routing_logic,
     )
 
     success = test.run_test()
