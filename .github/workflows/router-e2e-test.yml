@@ -218,7 +218,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: static-discovery-test-results-pr-${{ github.event.pull_request.number || 'main' }}
+          name: static-discovery-${{ matrix.strategy }}-test-results-pr-${{ github.event.pull_request.number || 'main' }}
           path: |
             ${{ env.LOG_DIR }}/*
 
