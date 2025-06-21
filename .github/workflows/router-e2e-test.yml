@@ -282,7 +282,7 @@ jobs:
             --log-file-path "$LOG_DIR/${{ matrix.strategy }}/router.log" \
             --router-url http://localhost:30080 \
             --routing-logic ${{ matrix.strategy }} \
-            --result-dir $LOG_DIR/${{ matrix.strategy }}
+            --result-dir "$LOG_DIR/${{ matrix.strategy }}"
         timeout-minutes: 5
 
       - name: Archive static discovery test results and logs
@@ -299,6 +299,6 @@ jobs:
           echo "🧹 Cleaning up processes"
           pkill -f "vllm serve"
           pkill -f "python3 -m src.vllm_router.app"
-          rm -rf $LOG_DIR
+          rm -rf "$LOG_DIR"
 
       - run: echo "🍏 Static discovery e2e test job status is ${{ job.status }}."
