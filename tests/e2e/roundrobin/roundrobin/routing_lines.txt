@@ -1,0 +1,41 @@
+[32;20m[2025-06-27 00:37:07,409] INFO:[0m Routing request 67b4cb15-0604-4684-9aae-2bb756c68422 with session id None to http://localhost:8001 at 1750984627.4094923, process time = 0.0664 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:07,526] INFO:[0m Routing request 657d70a1-6230-489a-ad5f-ac43fe0bff10 with session id None to http://localhost:8002 at 1750984627.5264473, process time = 0.0651 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:07,634] INFO:[0m Routing request 5aadda92-f1fc-44d6-b9c6-e184c998dd2e with session id None to http://localhost:8001 at 1750984627.6342344, process time = 0.0654 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:07,746] INFO:[0m Routing request 716ee5b3-267f-4f5f-8b25-cea3ea81b51f with session id None to http://localhost:8002 at 1750984627.7457457, process time = 0.0673 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:07,854] INFO:[0m Routing request 87517d4c-c4c1-49db-9d8b-58190d90cb56 with session id None to http://localhost:8001 at 1750984627.8541684, process time = 0.0665 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:07,967] INFO:[0m Routing request 3b2c6662-a083-4b22-87dd-48f8bcaf624d with session id None to http://localhost:8002 at 1750984627.9669526, process time = 0.0684 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,074] INFO:[0m Routing request ee73b7d3-68e9-45d0-82e0-7739d58679e3 with session id None to http://localhost:8001 at 1750984628.073846, process time = 0.0660 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,180] INFO:[0m Routing request 9ef6aa12-e06e-42e4-8444-2784413ea2ec with session id None to http://localhost:8002 at 1750984628.1804473, process time = 0.0653 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,286] INFO:[0m Routing request 5e2c6e06-c4dc-44e5-8bf1-ec1e90de5493 with session id None to http://localhost:8001 at 1750984628.2863476, process time = 0.0659 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,395] INFO:[0m Routing request f3122044-e477-4dd1-ba4e-e544f76bfdfb with session id None to http://localhost:8002 at 1750984628.3953238, process time = 0.0659 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,502] INFO:[0m Routing request c735651b-3a68-4afe-bf9b-7ff20d971deb with session id None to http://localhost:8001 at 1750984628.5027213, process time = 0.0666 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,610] INFO:[0m Routing request 3a32598e-1a3a-4349-a600-ad1166511c27 with session id None to http://localhost:8002 at 1750984628.6098235, process time = 0.0656 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,720] INFO:[0m Routing request 270828df-e7a2-4da0-b5f8-319ee407deeb with session id None to http://localhost:8001 at 1750984628.7205312, process time = 0.0693 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,829] INFO:[0m Routing request feac60a9-b5d3-4674-9a4a-48330609e3ee with session id None to http://localhost:8002 at 1750984628.829479, process time = 0.0679 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:08,938] INFO:[0m Routing request db4933f7-fbdf-477c-99fa-748b4de10cc0 with session id None to http://localhost:8001 at 1750984628.9385927, process time = 0.0666 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,046] INFO:[0m Routing request d4640044-ad26-40e4-acbc-9a782910ccb3 with session id None to http://localhost:8002 at 1750984629.0460603, process time = 0.0662 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,156] INFO:[0m Routing request 0bbea844-2d4d-42a9-a872-131e888f5d93 with session id None to http://localhost:8001 at 1750984629.156086, process time = 0.0684 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,265] INFO:[0m Routing request 31a1f251-cc77-4593-900c-61f0038f8f95 with session id None to http://localhost:8002 at 1750984629.2656531, process time = 0.0674 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,374] INFO:[0m Routing request 95e0279b-8bb5-4219-8617-94ef3591b16b with session id None to http://localhost:8001 at 1750984629.3738842, process time = 0.0670 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,482] INFO:[0m Routing request d2571a45-72d0-48d4-ae05-199ba0f4340c with session id None to http://localhost:8002 at 1750984629.4817224, process time = 0.0666 [3m(request.py:292:vllm_router.services.request_service.request)[0m
+
+[32;20m[2025-06-27 00:37:09,590] INFO:[0m Routing request 9a777dfa-b6af-4709-b807-8cb33e1029db with session id None to http://localhost:8001 at 1750984629.5900624, process time = 0.0673 [3m(request.py:292:vllm_router.services.request_service.request)[0m
