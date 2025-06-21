@@ -238,8 +238,8 @@ jobs:
         run: |
           echo "🚀 Starting vLLM serve backend"
           mkdir -p "$LOG_DIR/${{ matrix.strategy }}"
-          CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 > "$LOG_DIR/${{ matrix.strategy }}/backend1.log" 2>&1 &
-          CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 > "$LOG_DIR/${{ matrix.strategy }}/backend2.log" 2>&1 &
+          CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend1.log" 2>&1 &
+          CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend2.log" 2>&1 &
           sleep 3
 
       - name: Wait for backends to be ready

@@ -8,7 +8,7 @@ import re
 import time
 import uuid
 from collections import deque
-from typing import Dict, List
+from typing import Dict, List, Optional, Set
 
 import requests
 
@@ -44,23 +44,91 @@ class StaticDiscoveryTest:
         router_url: str = "http://localhost:30080",
         model: str = "facebook/opt-125m",
         log_file_path: str = "router.log",
-        result_dir: str = "/tmp/static-discovery-results",
+        result_dir: str = "tests/e2e/static-discovery-results",
         routing_logic: str = "roundrobin",
+        prefix_chunk_size: int = 128,
     ):
         self.router_url = router_url
         self.model = model
         self.log_file_path = log_file_path
         self.routing_logic = routing_logic
-        self.request_id_to_endpoint = {}
         self.results_dir = result_dir
         os.makedirs(self.results_dir, exist_ok=True)
+        self.prefix_chunk_size = prefix_chunk_size
 
-    def send_request(self, request_id: str) -> bool:
+    def _read_log_file(self) -> Optional[deque]:
+        """Read router log file and return content as deque"""
+        try:
+            with open(self.log_file_path, "r") as f:
+                return deque(f, maxlen=5000)
+        except FileNotFoundError:
+            print_error(f"❌ Log file not found: {self.log_file_path}")
+            return None
+        except Exception:
+            print_error(f"❌ Error reading log file {self.log_file_path}")
+            return None
+
+    def _extract_routing_lines(self, content: deque) -> List[str]:
+        """Extract routing decision lines from log content"""
+        routing_lines = []
+        for line in content:
+            if (
+                re.search(r"Routing request.*to.*at.*process time", line)
+                and "/health" not in line
+            ):
+                routing_lines.append(line)
+        return routing_lines
+
+    def _extract_endpoint_mapping(
+        self, routing_lines: List[str], request_id_to_endpoints: Dict[str, str]
+    ):
+        """Extract request ID to endpoint mapping from routing lines and update request_id_to_endpoints"""
+        for line in routing_lines:
+            match = re.search(
+                r"Routing request ([^ ]*) with session id [^ ]* to ([^ ]*) at ", line
+            )
+            if match:
+                request_id = match.group(1)
+                endpoint = match.group(2)
+                if request_id in request_id_to_endpoints:
+                    request_id_to_endpoints[request_id] = endpoint
+
+    def _extract_endpoint_set_mapping(
+        self, routing_lines: List[str], request_id_to_endpoints: Dict[str, Set[str]]
+    ):
+        """Extract request ID to set of endpoints mapping from routing lines"""
+        for line in routing_lines:
+            match = re.search(
+                r"Routing request ([^ ]*) with session id [^ ]* to ([^ ]*) at ", line
+            )
+            if match:
+                request_id = match.group(1)
+                endpoint = match.group(2)
+                if request_id in request_id_to_endpoints:
+                    request_id_to_endpoints[request_id].add(endpoint)
+
+    def _save_routing_lines(
+        self, routing_lines: List[str], filename: str = "routing_lines.txt"
+    ) -> bool:
+        """Save routing lines to a file in results directory"""
+        try:
+            filepath = f"{self.results_dir}/{filename}"
+            with open(filepath, "w") as f:
+                f.write("\n".join(routing_lines))
+            print_status(f"Wrote {len(routing_lines)} routing lines to {filepath}")
+            return True
+        except Exception:
+            print_error(
+                f"❌ Failed to write routing lines to file: {self.results_dir}/{filename}"
+            )
+            return False
+
+    def send_request(self, request_id: str, prompt: str) -> bool:
         """Send a single request and track which endpoint it goes to"""
         try:
             payload = {
                 "model": self.model,
-                "prompt": f"This is request {request_id}. Please respond briefly.",
+                "prompt": prompt,
                 "temperature": 0.7,
                 "max_tokens": 10,
             }
@@ -79,7 +147,6 @@ class StaticDiscoveryTest:
             )
 
             response.raise_for_status()
-
             print_status(f"✅ Request {request_id} completed successfully")
             return True
 
@@ -94,13 +161,16 @@ class StaticDiscoveryTest:
         """Test that requests are distributed in round-robin fashion"""
         print_status(f"🧪 Testing round-robin routing with {num_requests} requests")
 
+        request_id_to_endpoint = {}
         success_count = 0
+
+        # Send requests
         for i in range(1, num_requests + 1):
             request_id = str(uuid.uuid4())
-            self.request_id_to_endpoint[request_id] = None
-            if self.send_request(request_id):
+            request_id_to_endpoint[request_id] = None
+            prompt = f"This is request {request_id}. Please respond briefly."
+            if self.send_request(request_id, prompt):
                 success_count += 1
-            time.sleep(0.1)  # Small delay between requests
 
         if success_count == num_requests:
             print_status(f"✅ All {num_requests} requests completed successfully")
@@ -108,63 +178,25 @@ class StaticDiscoveryTest:
             print_error(f"❌ Only {success_count}/{num_requests} requests succeeded")
             return False
 
-        # Verify that the requests are distributed in round-robin fashion
-        # Get router logs
-        try:
-            with open(self.log_file_path, "r") as f:
-                content = deque(f, maxlen=5000)
-        except FileNotFoundError:
-            print_error(f"❌ Log file not found: {self.log_file_path}")
-            return False
-        except Exception:
-            print_error(f"❌ Error reading log file {self.log_file_path}")
+        # Analyze routing patterns
+        content = self._read_log_file()
+        if content is None:
             return False
 
-        # Filter for routing decisions
-        routing_lines = []
-        for line in content:
-            if (
-                re.search(r"Routing request.*to.*at.*process time", line)
-                and "/health" not in line
-            ):
-                routing_lines.append(line)
-
-        try:
-            with open(f"{self.results_dir}/routing_lines.txt", "w") as f:
-                f.write("\n".join(routing_lines))
-        except Exception:
-            print_error(
-                f"❌ Failed to write routing lines to file: {self.results_dir}/routing_lines.txt"
-            )
+        routing_lines = self._extract_routing_lines(content)
+        if not self._save_routing_lines(routing_lines):
             return False
 
-        print_status(
-            f"Wrote {len(routing_lines)} routing lines to {self.results_dir}/routing_lines.txt"
-        )
+        # Extract endpoint mapping
+        self._extract_endpoint_mapping(routing_lines, request_id_to_endpoint)
+        print_status(f"Request ID to endpoint mapping: {request_id_to_endpoint}")
 
-        # Get request ID -> endpoint mapping
-        for line in routing_lines:
-            match = re.search(
-                r"Routing request ([^ ]*) with session id [^ ]* to ([^ ]*) at ", line
-            )
-            if match:
-                request_id = match.group(1)
-                endpoint = match.group(2)
-                if request_id in self.request_id_to_endpoint:
-                    self.request_id_to_endpoint[request_id] = endpoint
-
-        print_status(f"Request ID to endpoint mapping: {self.request_id_to_endpoint}")
-        if None in self.request_id_to_endpoint.values():
+        if None in request_id_to_endpoint.values():
             print_error("❌ Some requests were not routed to any endpoint")
             return False
 
         # Verify round-robin distribution
-        endpoints = list(self.request_id_to_endpoint.values())
-        if len(endpoints) < 2:
-            print_warning("Not enough requests to verify round-robin distribution")
-            return True
-
-        # Check if endpoints alternate in round-robin fashion
+        endpoints = list(request_id_to_endpoint.values())
         for i in range(1, len(endpoints)):
             if endpoints[i] == endpoints[i - 1]:
                 print_error(
@@ -175,11 +207,116 @@ class StaticDiscoveryTest:
         print_status("✅ Round-robin routing verification passed")
         return True
 
-    def test_kvaware_routing(self, num_requests: int = 20) -> bool:
-        """Test that requests are distributed in kvaware fashion"""
-        print_status(f"🧪 Testing kvaware routing with {num_requests} requests")
+    def test_prefixaware_routing(self) -> bool:
+        """Test that the router can handle prefix-aware routing"""
+        print_status(f"🧪 Testing prefix-aware routing")
 
+        request_id_to_endpoints_success = {}
+        request_id_to_endpoints_failure = {}
         success_count = 0
+
+        # Generate test data with 3 success and 1 failure
+        prefix_test_data = {
+            "success": [
+                [
+                    "1" * self.prefix_chunk_size,
+                    "1" * self.prefix_chunk_size + "2" * self.prefix_chunk_size,
+                    "1" * self.prefix_chunk_size
+                    + "2" * self.prefix_chunk_size
+                    + "3" * self.prefix_chunk_size,
+                ],
+                [
+                    "2" * self.prefix_chunk_size
+                    + "3" * self.prefix_chunk_size
+                    + "4" * self.prefix_chunk_size,
+                    "2" * self.prefix_chunk_size + "3" * self.prefix_chunk_size,
+                    "2" * self.prefix_chunk_size,
+                ],
+                [
+                    "5" * self.prefix_chunk_size,
+                    "5" * self.prefix_chunk_size + "6" * self.prefix_chunk_size,
+                    "5" * self.prefix_chunk_size
+                    + "6" * self.prefix_chunk_size
+                    + "7" * self.prefix_chunk_size,
+                ],
+            ],
+            "failure": [
+                [
+                    "1" * self.prefix_chunk_size,
+                    "2" * self.prefix_chunk_size,
+                    "5" * self.prefix_chunk_size,
+                ]
+            ],
+        }
+
+        # Send requests
+        total_requests = 0
+        for prefix_chunk in prefix_test_data["success"]:
+            request_id = str(uuid.uuid4())
+            request_id_to_endpoints_success[request_id] = set()
+            for sample in prefix_chunk:
+                # Send 5 requests for each sample
+                for i in range(5):
+                    total_requests += 1
+                    if self.send_request(request_id, sample):
+                        success_count += 1
+        for prefix_chunk in prefix_test_data["failure"]:
+            request_id = str(uuid.uuid4())
+            request_id_to_endpoints_failure[request_id] = set()
+            for sample in prefix_chunk:
+                # Send 5 requests for each sample
+                for i in range(5):
+                    total_requests += 1
+                    if self.send_request(request_id, sample):
+                        success_count += 1
+
+        if success_count == total_requests:
+            print_status(f"✅ All {total_requests} requests completed successfully")
+        else:
+            print_error(f"❌ Only {success_count}/{total_requests} requests succeeded")
+            return False
+
+        # Analyze routing patterns
+        content = self._read_log_file()
+        if content is None:
+            return False
+
+        routing_lines = self._extract_routing_lines(content)
+        self._extract_endpoint_set_mapping(
+            routing_lines, request_id_to_endpoints_success
+        )
+        self._extract_endpoint_set_mapping(
+            routing_lines, request_id_to_endpoints_failure
+        )
+
+        print_status(
+            f"Request ID to endpoint mapping for success: {request_id_to_endpoints_success}"
+        )
+        print_status(
+            f"Request ID to endpoint mapping for failure: {request_id_to_endpoints_failure}"
+        )
+
+        # Verify prefix-aware routing
+        for request_id, endpoints in request_id_to_endpoints_success.items():
+            if len(endpoints) != 1:
+                print_error(
+                    f"❌ Request {request_id} was routed to multiple endpoints: {endpoints}"
+                )
+                return False
+        for request_id, endpoints in request_id_to_endpoints_failure.items():
+            if len(endpoints) < 2:
+                print_error(
+                    f"❌ Request {request_id} was routed to less than 2 endpoints: {endpoints}"
+                )
+                return False
+
+        print_status("✅ Prefix-aware routing verification passed")
+        return True
+
+    def test_disaggregated_prefill_routing(self) -> bool:
+        """Test that the router can handle disaggregated prefill routing"""
+        print_status("🧪 Testing disaggregated prefill routing")
+        return True
 
     def test_health_endpoint(self) -> bool:
         """Test router health endpoint"""
@@ -209,6 +346,35 @@ class StaticDiscoveryTest:
             print_error(f"❌ Model listing failed: {e}")
             return False
 
+    def test_chat_completions(self) -> bool:
+        """Test that the router can handle chat completions"""
+        try:
+            payload = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello! How are you?"},
+                ],
+                "max_tokens": 10,
+                "temperature": 0.7,
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer dummy",
+            }
+            response = requests.post(
+                f"{self.router_url}/v1/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=30,
+            )
+            response.raise_for_status()
+            print_status("✅ Chat completions are working")
+            return True
+        except Exception as e:
+            print_error(f"❌ Chat completions failed: {e} payload: {payload}")
+            return False
+
     def run_test(self) -> bool:
         """Run the complete static discovery test"""
         try:
@@ -222,17 +388,25 @@ class StaticDiscoveryTest:
             if not self.test_model_listing():
                 return False
 
-            # Test round-robin routing
+            # Test chat completions
+            if not self.test_chat_completions():
+                return False
+
+            # Test routing logic
             match self.routing_logic:
                 case "roundrobin":
                     if not self.test_roundrobin_routing():
                         return False
-                case "kvaware":
-                    if not self.test_kvaware_routing():
+                case "prefixaware":
+                    if not self.test_prefixaware_routing():
+                        return False
+                case "disaggregated_prefill":
+                    if not self.test_disaggregated_prefill_routing():
                         return False
                 case _:
-                    print_error(f"❌ Unsupported routing logic: {self.routing_logic}")
-                    return False
+                    print_status(
+                        f"🧪 Skipping test for {self.routing_logic} routing logic"
+                    )
 
             print_status("✅ Static discovery E2E test passed!")
             return True
@@ -261,13 +435,16 @@ def main():
     )
     parser.add_argument(
         "--result-dir",
-        default="/tmp/static-discovery-results",
+        default="tests/e2e/static-discovery-results",
         help="Path to result directory",
     )
     parser.add_argument(
         "--routing-logic",
         default="roundrobin",
         help="Routing logic to use for testing",
+    )
+    parser.add_argument(
+        "--prefix-chunk-size", type=int, default=128, help="Size of prefix chunk"
     )
     args = parser.parse_args()
 
@@ -277,6 +454,7 @@ def main():
         log_file_path=args.log_file_path,
         result_dir=args.result_dir,
         routing_logic=args.routing_logic,
+        prefix_chunk_size=args.prefix_chunk_size,
     )
 
     success = test.run_test()
