@@ -1,0 +1,107 @@
+/home/zrfishnoodles/production-stack/src/vllm_router/parsers/parser.py:20: RuntimeWarning: Failed to read commit hash:
+No module named 'vllm_router._version'
+  from vllm_router.version import __version__
+[32;20m[2025-06-27 00:37:47,240] INFO:[0m Initializing disaggregated prefill routing logic [3m(routing_logic.py:505:vllm_router.routers.routing_logic)[0m
+INFO:     Started server process [2126868]
+INFO:     Waiting for application startup.
+[32;20m[2025-06-27 00:37:47,321] INFO:[0m httpx AsyncClient instantiated. Id 140506988436000 [3m(httpx_client.py:31:vllm_router.httpx_client)[0m
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:30080 (Press CTRL+C to quit)
+[32;20m[2025-06-27 00:37:47,331] INFO:[0m Scraping metrics from 2 serving engine(s) [3m(engine_stats.py:146:vllm_router.stats.engine_stats)[0m
+INFO:     127.0.0.1:58408 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58412 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58418 - "GET /v1/models HTTP/1.1" 200 OK
+[1m[2025-06-27 00:37:47,924] DEBUG:[0m No cache hit, forwarding request to backend [3m(main_router.py:69:vllm_router.routers.main_router)[0m
+[32;20m[2025-06-27 00:37:47,943] INFO:[0m aaa3f812-fa10-453b-9b1d-e1ddb2321f46 prefill time (TTFT): 0.0189 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:47,943] INFO:[0m Routing request aaa3f812-fa10-453b-9b1d-e1ddb2321f46 with session id None to http://localhost:8001 at 1750984667.9436514, process time = 0.0190 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:47,943] INFO:[0m Routing request aaa3f812-fa10-453b-9b1d-e1ddb2321f46 with session id None to http://localhost:8002 at 1750984667.943875, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58420 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:47,995] INFO:[0m fbd909f7-ef67-4207-8fce-c50cd8efe500 prefill time (TTFT): 0.0093 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:47,995] INFO:[0m Routing request fbd909f7-ef67-4207-8fce-c50cd8efe500 with session id None to http://localhost:8001 at 1750984667.9951248, process time = 0.0094 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:47,995] INFO:[0m Routing request fbd909f7-ef67-4207-8fce-c50cd8efe500 with session id None to http://localhost:8002 at 1750984667.9953818, process time = 0.0003 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58430 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,042] INFO:[0m a2f307d1-7715-43da-b46f-a092387e95be prefill time (TTFT): 0.0095 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,042] INFO:[0m Routing request a2f307d1-7715-43da-b46f-a092387e95be with session id None to http://localhost:8001 at 1750984668.0424466, process time = 0.0096 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,042] INFO:[0m Routing request a2f307d1-7715-43da-b46f-a092387e95be with session id None to http://localhost:8002 at 1750984668.0426898, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58436 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,088] INFO:[0m 7d1fa1b6-1675-4ba9-8b7e-17f2597d1f4d prefill time (TTFT): 0.0084 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,088] INFO:[0m Routing request 7d1fa1b6-1675-4ba9-8b7e-17f2597d1f4d with session id None to http://localhost:8001 at 1750984668.0880878, process time = 0.0085 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,088] INFO:[0m Routing request 7d1fa1b6-1675-4ba9-8b7e-17f2597d1f4d with session id None to http://localhost:8002 at 1750984668.088294, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58448 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,133] INFO:[0m 1e7786b0-fd7c-44e0-9c76-b334ad4ec9f4 prefill time (TTFT): 0.0091 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,134] INFO:[0m Routing request 1e7786b0-fd7c-44e0-9c76-b334ad4ec9f4 with session id None to http://localhost:8001 at 1750984668.1339238, process time = 0.0092 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,134] INFO:[0m Routing request 1e7786b0-fd7c-44e0-9c76-b334ad4ec9f4 with session id None to http://localhost:8002 at 1750984668.134152, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58450 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,179] INFO:[0m 39473ab2-3d09-46e2-8d03-23045d97a3c1 prefill time (TTFT): 0.0088 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,180] INFO:[0m Routing request 39473ab2-3d09-46e2-8d03-23045d97a3c1 with session id None to http://localhost:8001 at 1750984668.1798692, process time = 0.0088 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,180] INFO:[0m Routing request 39473ab2-3d09-46e2-8d03-23045d97a3c1 with session id None to http://localhost:8002 at 1750984668.1800926, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58466 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,229] INFO:[0m eb045054-acf2-4fd0-8ae1-26b9242aedb5 prefill time (TTFT): 0.0097 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,229] INFO:[0m Routing request eb045054-acf2-4fd0-8ae1-26b9242aedb5 with session id None to http://localhost:8001 at 1750984668.2297182, process time = 0.0097 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,229] INFO:[0m Routing request eb045054-acf2-4fd0-8ae1-26b9242aedb5 with session id None to http://localhost:8002 at 1750984668.2299647, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58482 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,278] INFO:[0m 3edc6ddc-aa45-4a73-b4af-efd4a4b6dad1 prefill time (TTFT): 0.0103 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,278] INFO:[0m Routing request 3edc6ddc-aa45-4a73-b4af-efd4a4b6dad1 with session id None to http://localhost:8001 at 1750984668.2783382, process time = 0.0103 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,278] INFO:[0m Routing request 3edc6ddc-aa45-4a73-b4af-efd4a4b6dad1 with session id None to http://localhost:8002 at 1750984668.2786064, process time = 0.0003 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58494 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,327] INFO:[0m 00f2cada-fc33-4e9b-aa38-3ee578f76507 prefill time (TTFT): 0.0096 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,327] INFO:[0m Routing request 00f2cada-fc33-4e9b-aa38-3ee578f76507 with session id None to http://localhost:8001 at 1750984668.3270485, process time = 0.0097 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,327] INFO:[0m Routing request 00f2cada-fc33-4e9b-aa38-3ee578f76507 with session id None to http://localhost:8002 at 1750984668.3272886, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58500 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,375] INFO:[0m 8e20a084-33a8-430b-b611-c31104080fdd prefill time (TTFT): 0.0098 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,375] INFO:[0m Routing request 8e20a084-33a8-430b-b611-c31104080fdd with session id None to http://localhost:8001 at 1750984668.3751562, process time = 0.0099 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,375] INFO:[0m Routing request 8e20a084-33a8-430b-b611-c31104080fdd with session id None to http://localhost:8002 at 1750984668.3754344, process time = 0.0003 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58504 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,415] INFO:[0m ac2179d5-488b-4b11-8a65-cd03cf5c321c prefill time (TTFT): 0.0094 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,415] INFO:[0m Routing request ac2179d5-488b-4b11-8a65-cd03cf5c321c with session id None to http://localhost:8001 at 1750984668.415038, process time = 0.0095 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,415] INFO:[0m Routing request ac2179d5-488b-4b11-8a65-cd03cf5c321c with session id None to http://localhost:8002 at 1750984668.4152763, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58510 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,462] INFO:[0m be04eb3a-93b8-4985-a280-2eb49cace340 prefill time (TTFT): 0.0091 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,462] INFO:[0m Routing request be04eb3a-93b8-4985-a280-2eb49cace340 with session id None to http://localhost:8001 at 1750984668.4622283, process time = 0.0091 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,462] INFO:[0m Routing request be04eb3a-93b8-4985-a280-2eb49cace340 with session id None to http://localhost:8002 at 1750984668.462454, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58524 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,509] INFO:[0m ddaf6e5f-5f8a-4195-9f6f-532e761f3595 prefill time (TTFT): 0.0097 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,509] INFO:[0m Routing request ddaf6e5f-5f8a-4195-9f6f-532e761f3595 with session id None to http://localhost:8001 at 1750984668.5089805, process time = 0.0097 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,509] INFO:[0m Routing request ddaf6e5f-5f8a-4195-9f6f-532e761f3595 with session id None to http://localhost:8002 at 1750984668.5092068, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58540 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,555] INFO:[0m 3de0a304-7c65-48d7-8774-c9f3e6a39d20 prefill time (TTFT): 0.0089 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,555] INFO:[0m Routing request 3de0a304-7c65-48d7-8774-c9f3e6a39d20 with session id None to http://localhost:8001 at 1750984668.5551498, process time = 0.0090 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,555] INFO:[0m Routing request 3de0a304-7c65-48d7-8774-c9f3e6a39d20 with session id None to http://localhost:8002 at 1750984668.555379, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58544 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,600] INFO:[0m 3548b2ac-39e4-4f7d-b90f-c9466c73f8d9 prefill time (TTFT): 0.0087 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,600] INFO:[0m Routing request 3548b2ac-39e4-4f7d-b90f-c9466c73f8d9 with session id None to http://localhost:8001 at 1750984668.6000633, process time = 0.0087 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,600] INFO:[0m Routing request 3548b2ac-39e4-4f7d-b90f-c9466c73f8d9 with session id None to http://localhost:8002 at 1750984668.6002853, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58546 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,646] INFO:[0m f8a677f7-4536-4091-b29a-47024e583d26 prefill time (TTFT): 0.0088 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,646] INFO:[0m Routing request f8a677f7-4536-4091-b29a-47024e583d26 with session id None to http://localhost:8001 at 1750984668.646061, process time = 0.0088 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,646] INFO:[0m Routing request f8a677f7-4536-4091-b29a-47024e583d26 with session id None to http://localhost:8002 at 1750984668.6462815, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58548 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,692] INFO:[0m 869a0887-ceaf-495f-9b87-f54ea9491ba8 prefill time (TTFT): 0.0092 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,692] INFO:[0m Routing request 869a0887-ceaf-495f-9b87-f54ea9491ba8 with session id None to http://localhost:8001 at 1750984668.6927145, process time = 0.0093 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,692] INFO:[0m Routing request 869a0887-ceaf-495f-9b87-f54ea9491ba8 with session id None to http://localhost:8002 at 1750984668.692946, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58564 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,737] INFO:[0m 74817c90-8acc-412e-b275-ef2e796ea421 prefill time (TTFT): 0.0083 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,737] INFO:[0m Routing request 74817c90-8acc-412e-b275-ef2e796ea421 with session id None to http://localhost:8001 at 1750984668.737268, process time = 0.0084 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,737] INFO:[0m Routing request 74817c90-8acc-412e-b275-ef2e796ea421 with session id None to http://localhost:8002 at 1750984668.7374759, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58568 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,782] INFO:[0m f9281b4b-ec15-426e-b046-7e039bf669ae prefill time (TTFT): 0.0093 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,782] INFO:[0m Routing request f9281b4b-ec15-426e-b046-7e039bf669ae with session id None to http://localhost:8001 at 1750984668.782778, process time = 0.0094 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,783] INFO:[0m Routing request f9281b4b-ec15-426e-b046-7e039bf669ae with session id None to http://localhost:8002 at 1750984668.782998, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58576 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,828] INFO:[0m 7508d53f-289d-4e3b-858e-ec75e98cd928 prefill time (TTFT): 0.0085 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,828] INFO:[0m Routing request 7508d53f-289d-4e3b-858e-ec75e98cd928 with session id None to http://localhost:8001 at 1750984668.8283942, process time = 0.0086 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,828] INFO:[0m Routing request 7508d53f-289d-4e3b-858e-ec75e98cd928 with session id None to http://localhost:8002 at 1750984668.828631, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58592 - "POST /v1/completions HTTP/1.1" 200 OK
+[32;20m[2025-06-27 00:37:48,875] INFO:[0m 9d618679-5490-4959-b7a7-d2660b1f9c6b prefill time (TTFT): 0.0092 [3m(request.py:372:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,875] INFO:[0m Routing request 9d618679-5490-4959-b7a7-d2660b1f9c6b with session id None to http://localhost:8001 at 1750984668.875015, process time = 0.0092 [3m(request.py:373:vllm_router.services.request_service.request)[0m
+[32;20m[2025-06-27 00:37:48,875] INFO:[0m Routing request 9d618679-5490-4959-b7a7-d2660b1f9c6b with session id None to http://localhost:8002 at 1750984668.8752494, process time = 0.0002 [3m(request.py:384:vllm_router.services.request_service.request)[0m
+INFO:     127.0.0.1:58594 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32;20m[2025-06-27 00:37:49,128] INFO:[0m httpx async_client.is_closed(): False - Now close it. Id (will be unchanged): 140506988436000 [3m(httpx_client.py:35:vllm_router.httpx_client)[0m
+[32;20m[2025-06-27 00:37:49,128] INFO:[0m httpx async_client.is_closed(): True. Id (will be unchanged): 140506988436000 [3m(httpx_client.py:39:vllm_router.httpx_client)[0m
+[32;20m[2025-06-27 00:37:49,129] INFO:[0m httpx AsyncClient closed [3m(httpx_client.py:43:vllm_router.httpx_client)[0m
+INFO:     Closing engine stats scraper
+INFO:     Closing service discovery module
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2126868]
