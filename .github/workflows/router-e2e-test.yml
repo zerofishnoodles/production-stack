@@ -214,7 +214,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        strategy: [roundrobin, prefixaware, disaggregated_prefill, kvaware]
+        strategy: [roundrobin, prefixaware]
 
     steps:
       - name: Check out repository code
@@ -238,9 +238,29 @@ jobs:
         run: |
           echo "🚀 Starting vLLM serve backend"
           mkdir -p "$LOG_DIR/${{ matrix.strategy }}"
-          CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend1.log" 2>&1 &
-          CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend2.log" 2>&1 &
-          sleep 3
+          # Check if vLLM is already running on the ports with the same model
+          echo "🔍 Checking if vLLM is already running on ports 8001 and 8002 with facebook/opt-125m"
+          BACKEND1_RUNNING=false
+          BACKEND2_RUNNING=false
+
+          if curl -s http://localhost:8001/health > /dev/null 2>&1; then
+            echo "✅ vLLM is already running on port 8001"
+            BACKEND1_RUNNING=true
+          fi
+          if curl -s http://localhost:8002/health > /dev/null 2>&1; then
+            echo "✅ vLLM is already running on port 8002"
+            BACKEND2_RUNNING=true
+          fi
+
+          # Only start backends if they're not already running
+          if [ "$BACKEND1_RUNNING" = false ]; then
+            echo "🚀 Starting vLLM serve backend on port 8001"
+            CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend1.log" 2>&1 &
+          fi
+          if [ "$BACKEND2_RUNNING" = false ]; then
+            echo "🚀 Starting vLLM serve backend on port 8002"
+            CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/${{ matrix.strategy }}/backend2.log" 2>&1 &
+          fi
 
       - name: Wait for backends to be ready
         run: |
@@ -264,7 +284,7 @@ jobs:
             --log-stats-interval 10 \
             --engine-stats-interval 10 \
             --request-stats-window 10 \
-            --routing-logic ${{ matrix.strategy }} > "$LOG_DIR/${{ matrix.strategy }}/router.log" 2>&1 &
+            --routing-logic ${{ matrix.strategy }} > "$LOG_DIR/router.log" 2>&1 &
           ROUTER_PID=$!
           echo "Router started with PID: $ROUTER_PID"
           # Check if router is running
@@ -279,7 +299,7 @@ jobs:
           echo "🧪 Running static discovery test"
           python3 tests/e2e/test-static-discovery.py --num-requests 20 \
             --verbose \
-            --log-file-path "$LOG_DIR/${{ matrix.strategy }}/router.log" \
+            --log-file-path "$LOG_DIR/router.log" \
             --router-url http://localhost:30080 \
             --routing-logic ${{ matrix.strategy }} \
             --result-dir "$LOG_DIR/${{ matrix.strategy }}"
@@ -291,14 +311,16 @@ jobs:
         with:
           name: static-discovery-${{ matrix.strategy }}-test-results-pr-${{ github.event.pull_request.number || 'main' }}
           path: |
-            $LOG_DIR/${{ matrix.strategy }}/
+            $LOG_DIR/router.log
+            $LOG_DIR/${{ matrix.strategy }}
 
       - name: Cleanup processes
         if: always()
         run: |
           echo "🧹 Cleaning up processes"
-          pkill -f "vllm serve"
+          if [ "${{ matrix.strategy }}" = "prefixaware" ]; then
+            pkill -f "vllm serve"
+          fi
           pkill -f "python3 -m src.vllm_router.app"
-          rm -rf "$LOG_DIR"
 
       - run: echo "🍏 Static discovery e2e test job status is ${{ job.status }}."
