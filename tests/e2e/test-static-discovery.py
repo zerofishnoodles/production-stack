@@ -290,6 +290,7 @@ class StaticDiscoveryTest:
         print_status(
             f"Request ID to endpoint mapping for failure: {request_id_to_endpoints_failure}"
         )
+        self._save_routing_lines(routing_lines, "routing_lines.txt")
 
         # Verify prefix-aware routing
         for request_id, endpoints in request_id_to_endpoints_success.items():
