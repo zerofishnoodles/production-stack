@@ -164,7 +164,7 @@ run_multiple_tests() {
         cleanup
 
         # Small delay between tests
-        sleep 2
+        sleep 1
     done
 
     # Report results
@@ -242,7 +242,7 @@ done
 
 # Validate routing logic
 valid_logics=("roundrobin" "prefixaware" "all")
-if [[ ! " ${valid_logics[*]} " =~ " ${ROUTING_LOGIC} " ]]; then
+if [[ ! " ${valid_logics[*]} " =~ ${ROUTING_LOGIC} ]]; then
     print_error "Invalid routing logic: $ROUTING_LOGIC"
     print_error "Valid options: ${valid_logics[*]}"
     exit 1
