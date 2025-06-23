@@ -261,7 +261,7 @@ jobs:
         with:
           name: static-discovery-test-results-pr-${{ github.event.pull_request.number || 'main' }}
           path: |
-            $LOG_DIR/
+            ${{ env.LOG_DIR }}/*
 
       - name: Cleanup processes
         if: always()
