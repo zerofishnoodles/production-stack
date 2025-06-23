@@ -267,7 +267,7 @@ jobs:
         if: always()
         run: |
           echo "🧹 Cleaning up processes"
-          pkill -f "vllm serve"
-          pkill -f "python3 -m src.vllm_router.app"
+          pkill -f "vllm serve" || true
+          pkill -f "python3 -m src.vllm_router.app" || true
 
       - run: echo "🍏 Static discovery e2e test job status is ${{ job.status }}."

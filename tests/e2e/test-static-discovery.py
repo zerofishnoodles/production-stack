@@ -239,12 +239,36 @@ class StaticDiscoveryTest:
                     + "6" * self.prefix_chunk_size
                     + "7" * self.prefix_chunk_size,
                 ],
+                [
+                    "8" * self.prefix_chunk_size,
+                    "8" * self.prefix_chunk_size + "9" * self.prefix_chunk_size,
+                    "8" * self.prefix_chunk_size
+                    + "9" * self.prefix_chunk_size
+                    + "10" * self.prefix_chunk_size,
+                ],
+                [
+                    "11" * self.prefix_chunk_size,
+                    "11" * self.prefix_chunk_size + "12" * self.prefix_chunk_size,
+                    "11" * self.prefix_chunk_size
+                    + "12" * self.prefix_chunk_size
+                    + "13" * self.prefix_chunk_size,
+                ],
+                [
+                    "14" * self.prefix_chunk_size,
+                    "14" * self.prefix_chunk_size + "15" * self.prefix_chunk_size,
+                    "14" * self.prefix_chunk_size
+                    + "15" * self.prefix_chunk_size
+                    + "16" * self.prefix_chunk_size,
+                ],
             ],
             "failure": [
                 [
                     "1" * self.prefix_chunk_size,
                     "2" * self.prefix_chunk_size,
                     "5" * self.prefix_chunk_size,
+                    "8" * self.prefix_chunk_size,
+                    "11" * self.prefix_chunk_size,
+                    "14" * self.prefix_chunk_size,
                 ]
             ],
         }
@@ -293,16 +317,23 @@ class StaticDiscoveryTest:
         self._save_routing_lines(routing_lines, "routing_lines.txt")
 
         # Verify prefix-aware routing
+        success_endpoints = set()
         for request_id, endpoints in request_id_to_endpoints_success.items():
             if len(endpoints) != 1:
                 print_error(
                     f"❌ Request {request_id} was routed to multiple endpoints: {endpoints}"
                 )
                 return False
+            success_endpoints.add(list(endpoints)[0])
         for request_id, endpoints in request_id_to_endpoints_failure.items():
-            if len(endpoints) < 2:
+            if len(success_endpoints) == 2 and len(endpoints) < 2:
                 print_error(
                     f"❌ Request {request_id} was routed to less than 2 endpoints: {endpoints}"
+                )
+                return False
+            elif len(success_endpoints) == 1 and len(endpoints) != 1:
+                print_error(
+                    f"❌ Request {request_id} was routed to multiple endpoints: {endpoints}"
                 )
                 return False
 
