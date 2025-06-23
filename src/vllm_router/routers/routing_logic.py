@@ -404,7 +404,7 @@ class PrefixAwareRouter(RoutingInterface):
             messages = request_json["messages"]
             if messages:
                 # Concatenate all message content
-                prompt = ""
+                prompt_parts = []
                 for message in messages:
                     content = message.get("content", "")
                     if isinstance(content, list):
@@ -414,10 +414,10 @@ class PrefixAwareRouter(RoutingInterface):
                             for part in content
                             if part.get("type") == "text"
                         )
-                        prompt += text_content
-                    else:
-                        prompt += content
-                prompt = prompt
+                        prompt_parts.append(text_content)
+                    elif content is not None:
+                        prompt_parts.append(content)
+                prompt = "\n".join(prompt_parts)
             else:
                 prompt = ""
         else:

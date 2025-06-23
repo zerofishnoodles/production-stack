@@ -214,7 +214,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        strategy: [roundrobin, kvaware]
+        strategy: [roundrobin, prefixaware, disaggregated_prefill, kvaware]
 
     steps:
       - name: Check out repository code
@@ -248,11 +248,11 @@ jobs:
           chmod +x .github/wait-for-backends.sh
           ./.github/wait-for-backends.sh 180 "http://localhost:8001" "http://localhost:8002"
 
-      - name: Start Router with static discovery and roundrobin routing
+      - name: Start Router with static discovery and ${{ matrix.strategy }} routing
         env:
           PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          echo "🔧 Starting router with static discovery and roundrobin routing"
+          echo "🔧 Starting router with static discovery and ${{ matrix.strategy }} routing"
           echo "PYTHONPATH=$PYTHONPATH"
           # Start router in background with log capture
           python3 -m src.vllm_router.app --port 30080 \

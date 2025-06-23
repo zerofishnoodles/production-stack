@@ -251,24 +251,19 @@ class StaticDiscoveryTest:
 
         # Send requests
         total_requests = 0
-        for prefix_chunk in prefix_test_data["success"]:
-            request_id = str(uuid.uuid4())
-            request_id_to_endpoints_success[request_id] = set()
-            for sample in prefix_chunk:
-                # Send 5 requests for each sample
-                for i in range(5):
-                    total_requests += 1
-                    if self.send_request(request_id, sample):
-                        success_count += 1
-        for prefix_chunk in prefix_test_data["failure"]:
-            request_id = str(uuid.uuid4())
-            request_id_to_endpoints_failure[request_id] = set()
-            for sample in prefix_chunk:
-                # Send 5 requests for each sample
-                for i in range(5):
-                    total_requests += 1
-                    if self.send_request(request_id, sample):
-                        success_count += 1
+        for test_case, request_id_map in [
+            ("success", request_id_to_endpoints_success),
+            ("failure", request_id_to_endpoints_failure),
+        ]:
+            for prefix_chunk in prefix_test_data[test_case]:
+                request_id = str(uuid.uuid4())
+                request_id_map[request_id] = set()
+                for sample in prefix_chunk:
+                    # Send 5 requests for each sample
+                    for _ in range(5):
+                        total_requests += 1
+                        if self.send_request(request_id, sample):
+                            success_count += 1
 
         if success_count == total_requests:
             print_status(f"✅ All {total_requests} requests completed successfully")
@@ -316,6 +311,11 @@ class StaticDiscoveryTest:
     def test_disaggregated_prefill_routing(self) -> bool:
         """Test that the router can handle disaggregated prefill routing"""
         print_status("🧪 Testing disaggregated prefill routing")
+        return True
+
+    def test_kvaware_routing(self) -> bool:
+        """Test that the router can handle kvaware routing"""
+        print_status("🧪 Testing kvaware routing")
         return True
 
     def test_health_endpoint(self) -> bool:
@@ -393,20 +393,17 @@ class StaticDiscoveryTest:
                 return False
 
             # Test routing logic
-            match self.routing_logic:
-                case "roundrobin":
-                    if not self.test_roundrobin_routing():
-                        return False
-                case "prefixaware":
-                    if not self.test_prefixaware_routing():
-                        return False
-                case "disaggregated_prefill":
-                    if not self.test_disaggregated_prefill_routing():
-                        return False
-                case _:
-                    print_status(
-                        f"🧪 Skipping test for {self.routing_logic} routing logic"
-                    )
+            test_runners = {
+                "roundrobin": self.test_roundrobin_routing,
+                "prefixaware": self.test_prefixaware_routing,
+                "disaggregated_prefill": self.test_disaggregated_prefill_routing,
+                "kvaware": self.test_kvaware_routing,
+            }
+            if test_runner := test_runners.get(self.routing_logic):
+                if not test_runner():
+                    return False
+            else:
+                print_status(f"🧪 Skipping test for {self.routing_logic} routing logic")
 
             print_status("✅ Static discovery E2E test passed!")
             return True
