@@ -209,7 +209,8 @@ jobs:
     needs: e2e-test
     if: github.event.pull_request.draft == false
     env:
-      LOG_DIR: /tmp/debug-logs-${{ github.event.pull_request.number || 'main' }}
+      LOG_DIR: /tmp/static-discovery-e2e-test-${{ github.event.pull_request.number || 'main' }}
+
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -232,46 +233,26 @@ jobs:
         run: |
           echo "🚀 Starting vLLM serve backend"
           mkdir -p "$LOG_DIR"
-          CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 > "$LOG_DIR/backend1.log" 2>&1 &
-          CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 > "$LOG_DIR/backend2.log" 2>&1 &
-          sleep 3
+          CUDA_VISIBLE_DEVICES=0 vllm serve facebook/opt-125m --port 8001 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/backend1.log" 2>&1 &
+          CUDA_VISIBLE_DEVICES=1 vllm serve facebook/opt-125m --port 8002 --gpu-memory-utilization 0.7 --chat-template .github/template-chatml.jinja > "$LOG_DIR/backend2.log" 2>&1 &
 
       - name: Wait for backends to be ready
         run: |
           echo "⏳ Waiting for backends to be ready"
-          chmod +x .github/wait-for-backends.sh
-          ./.github/wait-for-backends.sh 180 "http://localhost:8001" "http://localhost:8002"
+          chmod +x tests/e2e/wait-for-backends.sh
+          ./tests/e2e/wait-for-backends.sh 180 "http://localhost:8001" "http://localhost:8002"
 
-      - name: Start Router with static discovery and roundrobin routing
+      - name: Run All Static Discovery Routing Tests
         env:
           PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          echo "🔧 Starting router with static discovery and roundrobin routing"
-          echo "PYTHONPATH=$PYTHONPATH"
-          # Start router in background with log capture
-          python3 -m src.vllm_router.app --port 30080 \
-            --service-discovery static \
-            --static-backends "http://localhost:8001,http://localhost:8002" \
-            --static-models "facebook/opt-125m,facebook/opt-125m" \
-            --static-model-types "chat,chat" \
-            --log-stats \
-            --log-stats-interval 10 \
-            --engine-stats-interval 10 \
-            --request-stats-window 10 \
-            --routing-logic roundrobin > "$LOG_DIR/router.log" 2>&1 &
-          ROUTER_PID=$!
-          echo "Router started with PID: $ROUTER_PID"
-          # Check if router is running
-          timeout 30 bash -c 'until curl -s http://localhost:30080 > /dev/null 2>&1; do sleep 1; done' || {
-            echo "❌ Router failed to start within 30 seconds"
-            exit 1
-          }
-          echo "✅ Router started successfully"
-
-      - name: Run static discovery E2E test
-        run: |
-          echo "🧪 Running static discovery test"
-          python3 tests/e2e/test-static-discovery.py --num-requests 20 --verbose --log-file-path "$LOG_DIR/router.log" --router-url http://localhost:30080
+          echo "🧪 Running all static discovery routing tests sequentially"
+          chmod +x tests/e2e/run-static-discovery-routing-test.sh
+          ./tests/e2e/run-static-discovery-routing-test.sh all \
+            --pythonpath "$PYTHONPATH" \
+            --log-dir "$LOG_DIR" \
+            --num-requests 20 \
+            --verbose
         timeout-minutes: 5
 
       - name: Archive static discovery test results and logs
@@ -280,14 +261,13 @@ jobs:
         with:
           name: static-discovery-test-results-pr-${{ github.event.pull_request.number || 'main' }}
           path: |
-            /tmp/static-discovery-results-*
-            $LOG_DIR/
+            ${{ env.LOG_DIR }}/*
 
       - name: Cleanup processes
         if: always()
         run: |
           echo "🧹 Cleaning up processes"
-          pkill -f "vllm serve"
-          pkill -f "python3 -m src.vllm_router.app"
+          pkill -f "vllm serve" || true
+          pkill -f "python3 -m src.vllm_router.app" || true
 
       - run: echo "🍏 Static discovery e2e test job status is ${{ job.status }}."
