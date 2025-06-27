@@ -3,7 +3,7 @@ servingEngineSpec:
   strategy:
     type: Recreate
   enableEngine: true
-  runtimeClassName: ""
+  runtimeClassName: "nvidia"
   containerPort: 8000
   modelSpec:
     # Prefill node configuration
