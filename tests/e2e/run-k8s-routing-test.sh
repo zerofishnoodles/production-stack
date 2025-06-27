@@ -235,6 +235,7 @@ run_complete_test() {
     # Setup port forwarding for k8s discovery
     if ! setup_port_forwarding; then
         print_error "Failed to setup port forwarding"
+        cleanup_resources
         return 1
     fi
 

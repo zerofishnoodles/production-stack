@@ -137,9 +137,8 @@ jobs:
         run: |
           echo "🔨 Building router docker image"
           cd ${{ github.workspace }}
-          sudo docker build --build-arg INSTALL_OPTIONAL_DEP=default -t localhost:5000/git-act-router -f docker/Dockerfile .
-          sudo docker push localhost:5000/git-act-router
-          minikube image load localhost:5000/git-act-router
+          eval "$(minikube docker-env)"
+          docker build --build-arg INSTALL_OPTIONAL_DEP=default -t git-act-router -f docker/Dockerfile.kvaware .
 
       - name: Run all k8s discovery routing tests
         run: |

@@ -79,8 +79,10 @@ servingEngineSpec:
 
 routerSpec:
   enableRouter: true
-  repository: "localhost:5000/git-act-router"
+  repository: "git-act-router"
   imagePullPolicy: "IfNotPresent"
+  strategy:
+    type: Recreate
   replicaCount: 1
   containerPort: 8000
   servicePort: 80
