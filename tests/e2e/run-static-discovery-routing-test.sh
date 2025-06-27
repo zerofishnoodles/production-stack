@@ -92,10 +92,10 @@ start_router() {
         --log-stats-interval 10 \
         --engine-stats-interval 10 \
         --request-stats-window 10 \
-        --routing-logic "$routing_logic" \
-        --static-model-labels "prefill,decode" \
         --prefill-model-labels "prefill" \
-        --decode-model-labels "decode" > "$log_file" 2>&1 &
+        --decode-model-labels "decode" \
+        --static-model-labels "prefill,decode" \
+        --routing-logic "$routing_logic" > "$log_file" 2>&1 &
 
     ROUTER_PID=$!
     print_status "Router started with PID: $ROUTER_PID"
