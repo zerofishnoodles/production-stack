@@ -14,6 +14,7 @@ MODEL="facebook/opt-125m"
 BACKENDS_URL="http://localhost:8001,http://localhost:8002"
 PYTHONPATH=""
 VERBOSE=""
+SESSION_KEY="x-user-id"
 
 # Colors for output
 RED='\033[0;31m'
@@ -44,7 +45,7 @@ Routing Logic Options:
     prefixaware         - Test prefix-aware routing
     kvaware            - Test KV-aware routing
     disaggregated_prefill - Test disaggregated prefill routing
-
+    session              - Test session routing
 Options:
     -p, --port PORT         Router port (default: 30080)
     -l, --log-dir DIR       Log directory (default: /tmp/router-logs)
@@ -58,7 +59,7 @@ Examples:
     $0 roundrobin
     $0 prefixaware --num-requests 30 --verbose
     $0 kvaware --port 30081 --log-dir ./logs
-
+    $0 session --num-requests 30 --verbose
 EOF
 }
 
@@ -95,6 +96,7 @@ start_router() {
         --prefill-model-labels "prefill" \
         --decode-model-labels "decode" \
         --static-model-labels "prefill,decode" \
+        --session-key "$SESSION_KEY" \
         --routing-logic "$routing_logic" > "$log_file" 2>&1 &
 
     ROUTER_PID=$!
@@ -127,6 +129,7 @@ run_test() {
     test_cmd="$test_cmd --routing-logic $routing_logic"
     test_cmd="$test_cmd --result-dir '$result_dir'"
     test_cmd="$test_cmd --discovery-type static"
+    test_cmd="$test_cmd --session-key $SESSION_KEY"
 
     if [ "$VERBOSE" = "true" ]; then
         test_cmd="$test_cmd --verbose"
@@ -232,6 +235,10 @@ while [[ $# -gt 0 ]]; do
             PYTHONPATH="$2"
             shift 2
             ;;
+        --session-key)
+            SESSION_KEY="$2"
+            shift 2
+            ;;
         *)
             print_error "Unknown option: $1"
             show_usage
@@ -241,7 +248,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate routing logic
-valid_logics=("roundrobin" "prefixaware" "kvaware" "disaggregated_prefill" "all")
+valid_logics=("roundrobin" "prefixaware" "kvaware" "disaggregated_prefill" "session" "all")
 if [[ ! " ${valid_logics[*]} " =~ ${ROUTING_LOGIC} ]]; then
     print_error "Invalid routing logic: $ROUTING_LOGIC"
     print_error "Valid options: ${valid_logics[*]}"
@@ -259,7 +266,7 @@ fi
 # Run tests based on routing logic
 if [ "$ROUTING_LOGIC" = "all" ]; then
     # Run all tests
-    all_logics=("roundrobin" "prefixaware" "kvaware" "disaggregated_prefill")
+    all_logics=("roundrobin" "prefixaware" "kvaware" "disaggregated_prefill" "session")
     run_multiple_tests "${all_logics[@]}"
 else
     # Run single test
