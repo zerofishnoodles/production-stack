@@ -184,9 +184,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
-      - name: Install vLLM
+      - name: Install vLLM and lmcache
         run: |
           pip install vllm
+          pip install lmcache
 
       - name: Start 2 vLLM serve backends
         run: |

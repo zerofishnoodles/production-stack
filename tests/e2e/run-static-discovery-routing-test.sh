@@ -74,8 +74,10 @@ cleanup() {
 start_router() {
     local routing_logic=$1
     local log_file="$LOG_DIR/$routing_logic/router.log"
-    local backends_url1=$(echo "$BACKENDS_URL" | cut -d ',' -f 1)
-    local backends_url2=$(echo "$BACKENDS_URL" | cut -d ',' -f 2)
+    local backends_url1
+    backends_url1=$(echo "$BACKENDS_URL" | cut -d ',' -f 1)
+    local backends_url2
+    backends_url2=$(echo "$BACKENDS_URL" | cut -d ',' -f 2)
 
     print_status "🔧 Starting router with static discovery and $routing_logic routing"
     print_status "PYTHONPATH=$PYTHONPATH"

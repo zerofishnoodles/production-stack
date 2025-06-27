@@ -3,7 +3,7 @@ servingEngineSpec:
   strategy:
     type: Recreate
   enableEngine: true
-  runtimeClassName: "nvidia"
+  runtimeClassName: ""
   containerPort: 8000
   modelSpec:
     # Prefill node configuration
@@ -79,8 +79,8 @@ servingEngineSpec:
 
 routerSpec:
   enableRouter: true
-  # repository: "localhost:5000/git-act-router"
-  tag: "pd"
+  repository: "localhost:5000/git-act-router"
+  imagePullPolicy: "IfNotPresent"
   replicaCount: 1
   containerPort: 8000
   servicePort: 80

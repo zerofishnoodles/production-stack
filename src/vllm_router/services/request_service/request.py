@@ -381,8 +381,9 @@ async def route_disaggregated_prefill_request(
         ):
             yield chunk
 
+    curr_time = time.time()
     logger.info(
-        f"Routing request {request_id} with session id None to {request.app.state.decode_client.base_url} at {time.time()}, process time = {time.time() - et:.4f}"
+        f"Routing request {request_id} with session id None to {request.app.state.decode_client.base_url} at {curr_time}, process time = {curr_time - et:.4f}"
     )
 
     return StreamingResponse(

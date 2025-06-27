@@ -199,9 +199,9 @@ class StaticDiscoveryTest:
         success_count = 0
         total_requests = self.num_requests * 5
         for i in range(self.num_requests):
+            session_id = str(uuid.uuid4())
+            session_id_to_endpoint[session_id] = set()
             for j in range(5):
-                session_id = str(uuid.uuid4())
-                session_id_to_endpoint[session_id] = set()
                 if self.send_request(session_id, "Hello!"):
                     success_count += 1
 

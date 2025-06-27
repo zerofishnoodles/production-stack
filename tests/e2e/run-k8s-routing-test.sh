@@ -264,7 +264,7 @@ run_all_tests() {
     local test_configs=(
         "roundrobin:roundrobin:.github/values-08-roundrobin-routing.yaml"
         "prefixaware:prefixaware:.github/values-07-prefix-routing.yaml"
-        "kvaware:kvaware:.github/values-09-kv-aware-routing.yaml"
+        "kvaware:kvaware:.github/values-09-kvaware-routing.yaml"
         "session:session:.github/values-06-session-routing.yaml"
         "disaggregated-prefill:disaggregated_prefill:.github/values-10-disagg-prefill.yaml"
     )
@@ -394,11 +394,11 @@ else
             ROUTING_LOGIC="prefixaware"
             ;;
         "kvaware")
-            HELM_VALUES_FILE=".github/values-09-kv-aware-routing.yaml"
+            HELM_VALUES_FILE=".github/values-09-kvaware-routing.yaml"
             ROUTING_LOGIC="kvaware"
             ;;
         "disaggregated-prefill")
-            HELM_VALUES_FILE=".github/values-10-disaggregated-prefill-routing.yaml"
+            HELM_VALUES_FILE=".github/values-10-disagg-prefill.yaml"
             ROUTING_LOGIC="disaggregated_prefill"
             ;;
         "session")
