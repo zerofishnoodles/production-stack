@@ -165,7 +165,6 @@ spec:
                         status.
                       maxLength: 1024
                       minLength: 1
-                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
                       type: string
                     status:
                       description: Status is the status of the condition.
