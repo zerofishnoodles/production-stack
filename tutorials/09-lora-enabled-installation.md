@@ -371,6 +371,7 @@ loraAdapters:
 ```
 
 ### Step 2: LoRA loading
+
 #### 2.1 Local LoRA Loading (Helm Approach)
 
 You can manually load lora adapters to the hostpath so that it can access by the lora controller and finish loading.
@@ -667,7 +668,7 @@ Note: Remember to keep the port-forward terminal running while making these requ
 
 ## Cleanup
 
-### For Operator-based Deployment:
+### For Operator-based Deployment
 
 ```bash
 helm uninstall vllm
@@ -675,7 +676,7 @@ cd operator && make undeploy
 kubectl delete secret huggingface-credentials
 ```
 
-### For Helm-based Deployment:
+### For Helm-based Deployment
 
 ```bash
 # First delete any LoRA adapters
@@ -683,8 +684,8 @@ kubectl delete loraadapters.production-stack.vllm.ai --all
 # Then uninstall the Helm release
 helm uninstall vllm
 ```
-> **Note:** After delete the lora adapter cr, then you can delete the helm cluster. **DO NOT DELETE THE HELM RELEASE BEFORE DELETE THE ADAPTER**, Since the lora controller will be deleted and then the lora adapter cr will not be safely deleted.
 
+> **Note:** After delete the lora adapter cr, then you can delete the helm cluster. **DO NOT DELETE THE HELM RELEASE BEFORE DELETE THE ADAPTER**, Since the lora controller will be deleted and then the lora adapter cr will not be safely deleted.
 
 ## Troubleshooting
 
