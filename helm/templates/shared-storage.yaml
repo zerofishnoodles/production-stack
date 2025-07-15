@@ -1,4 +1,4 @@
-{{- if .Values.servingEngineSpec.sharedPvcStorage }}
+{{- if .Values.sharedPvcStorage }}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -9,22 +9,22 @@ metadata:
     app: {{ .Release.Name }}
     component: shared-pvc-storage
 spec:
-  storageClassName: {{ .Values.servingEngineSpec.sharedPvcStorage.storageClass | default "standard" }}
+  storageClassName: {{ .Values.sharedPvcStorage.storageClass | default "standard" }}
   capacity:
-    storage: {{ .Values.servingEngineSpec.sharedPvcStorage.size | default "100Gi" }}
+    storage: {{ .Values.sharedPvcStorage.size | default "100Gi" }}
   accessModes:
-  {{- if .Values.servingEngineSpec.sharedPvcStorage.accessModes }}
-    {{- toYaml .Values.servingEngineSpec.sharedPvcStorage.accessModes | nindent 4 }}
+  {{- if .Values.sharedPvcStorage.accessModes }}
+    {{- toYaml .Values.sharedPvcStorage.accessModes | nindent 4 }}
   {{- else }}
     - ReadWriteMany
   {{- end }}
-  {{- if .Values.servingEngineSpec.sharedPvcStorage.hostPath }}
+  {{- if .Values.sharedPvcStorage.hostPath }}
   hostPath:
-    path: {{ .Values.servingEngineSpec.sharedPvcStorage.hostPath }}
+    path: {{ .Values.sharedPvcStorage.hostPath }}
   {{- else }}
   nfs:
-    server: {{ required "A valid .Values.servingEngineSpec.sharedPvcStorage.nfs.server is required" .Values.servingEngineSpec.sharedPvcStorage.nfs.server }}
-    path: {{ required "A valid .Values.servingEngineSpec.sharedPvcStorage.nfs.path is required" .Values.servingEngineSpec.sharedPvcStorage.nfs.path }}
+    server: {{ required "A valid .Values.sharedPvcStorage.nfs.server is required" .Values.sharedPvcStorage.nfs.server }}
+    path: {{ required "A valid .Values.sharedPvcStorage.nfs.path is required" .Values.sharedPvcStorage.nfs.path }}
   {{- end }}
 ---
 apiVersion: v1
@@ -36,14 +36,14 @@ metadata:
     app: {{ .Release.Name }}
     component: shared-pvc-storage
 spec:
-  storageClassName: {{ .Values.servingEngineSpec.sharedPvcStorage.storageClass | default "standard" }}
+  storageClassName: {{ .Values.sharedPvcStorage.storageClass | default "standard" }}
   accessModes:
-  {{- if .Values.servingEngineSpec.sharedPvcStorage.accessModes }}
-    {{- toYaml .Values.servingEngineSpec.sharedPvcStorage.accessModes | nindent 4 }}
+  {{- if .Values.sharedPvcStorage.accessModes }}
+    {{- toYaml .Values.sharedPvcStorage.accessModes | nindent 4 }}
   {{- else }}
     - ReadWriteMany
   {{- end }}
   resources:
     requests:
-      storage: {{ .Values.servingEngineSpec.sharedPvcStorage.size | default "100Gi" }}
+      storage: {{ .Values.sharedPvcStorage.size | default "100Gi" }}
 {{- end }}

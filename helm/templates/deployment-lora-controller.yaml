@@ -30,7 +30,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-lora-controller
       securityContext:
         {{- toYaml .Values.loraController.podSecurityContext | nindent 8 }}
-      {{- if hasKey $.Values.servingEngineSpec "sharedPvcStorage" }}
+      {{- if hasKey $.Values "sharedPvcStorage" }}
       initContainers:
         - name: fix-perms
           image: busybox:1.37
@@ -101,7 +101,7 @@ spec:
               mountPath: /tmp/k8s-webhook-server/serving-certs
               readOnly: true
           {{- end }}
-          {{- if hasKey $.Values.servingEngineSpec "sharedPvcStorage" }}
+          {{- if hasKey $.Values "sharedPvcStorage" }}
             - name: {{ .Release.Name }}-shared-pvc-storage
               mountPath: /data/shared-pvc-storage
           {{- end }}
@@ -111,7 +111,7 @@ spec:
           secret:
             secretName: {{ .Release.Name }}-lora-controller-webhook-server-cert
       {{- end }}
-      {{- if hasKey $.Values.servingEngineSpec "sharedPvcStorage" }}
+      {{- if hasKey $.Values "sharedPvcStorage" }}
         - name: {{ .Release.Name }}-shared-pvc-storage
           persistentVolumeClaim:
             claimName: "{{ .Release.Name }}-shared-pvc-storage-claim"

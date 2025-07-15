@@ -1,4 +1,29 @@
+<!-- TOC ignore:true -->
 # Tutorial: Setting up vLLM with Llama-3.1 and LoRA Support
+
+<!-- TOC -->
+
+- [Tutorial: Setting up vLLM with Llama-3.1 and LoRA Support](#tutorial-setting-up-vllm-with-llama-31-and-lora-support)
+    - [Introduction](#introduction)
+    - [Prerequisites](#prerequisites)
+    - [Architecture Overview](#architecture-overview)
+    - [Approach 1: Operator-based Deployment](#approach-1-operator-based-deployment)
+        - [Step 1: Set up Hugging Face Credentials](#step-1-set-up-hugging-face-credentials)
+        - [Step 2: Deploy vLLM Instance with LoRA Support](#step-2-deploy-vllm-instance-with-lora-support)
+        - [Step 3: Using LoRA Adapters](#step-3-using-lora-adapters)
+    - [Approach 2: Helm-based Deployment](#approach-2-helm-based-deployment)
+        - [Step 1: Deploy vLLM with LoRA Support](#step-1-deploy-vllm-with-lora-support)
+        - [Step 2: LoRA loading](#step-2-lora-loading)
+        - [Step 3: Test vLLM with LoRA Support](#step-3-test-vllm-with-lora-support)
+        - [Step 4: Unload a LoRA Adapter](#step-4-unload-a-lora-adapter)
+    - [Cleanup](#cleanup)
+        - [For Operator-based Deployment](#for-operator-based-deployment)
+        - [For Helm-based Deployment](#for-helm-based-deployment)
+    - [Troubleshooting](#troubleshooting)
+    - [Additional Resources](#additional-resources)
+    - [Conclusion](#conclusion)
+
+<!-- /TOC -->
 
 ## Introduction
 
@@ -34,6 +59,7 @@ kubectl create secret generic huggingface-credentials \
 
 ### Step 2: Deploy vLLM Instance with LoRA Support
 
+<!-- TOC ignore:true -->
 #### 2.1: Create Configuration File
 
 Locate the file under path [tutorial/assets/values-09-lora-enabled.yaml](assets/values-09-lora-enabled.yaml) with the following content:
@@ -106,6 +132,7 @@ routerSpec:
   enableRouter: true
 ```
 
+<!-- TOC ignore:true -->
 #### 2.2: Deploy the Helm Chart
 
 ```bash
@@ -113,8 +140,9 @@ helm repo add vllm https://vllm-project.github.io/production-stack
 helm install vllm vllm/vllm-stack -f tutorials/assets/values-09-lora-enabled.yaml
 ```
 
-### Step 3: Using LoRA Adapters (Operator Approach)
+### Step 3: Using LoRA Adapters
 
+<!-- TOC ignore:true -->
 #### 3.1: Download LoRA Adapters
 
 For now, we support local lora loading, so we need to manually download lora to local persistent volume.
@@ -142,6 +170,7 @@ sql_lora_path = snapshot_download(
 ls -l /data/lora-adapters/
 ```
 
+<!-- TOC ignore:true -->
 #### 3.2: Install the operator
 
 ```bash
@@ -149,6 +178,7 @@ cd operator
 make deploy IMG=lmcache/operator:latest
 ```
 
+<!-- TOC ignore:true -->
 #### 3.3: Apply the lora adapter
 
 Locate the [sample lora adapter CRD](../operator/config/samples/production-stack_v1alpha1_loraadapter.yaml) yaml file which has the following content
@@ -222,6 +252,7 @@ Expected output:
 }
 ```
 
+<!-- TOC ignore:true -->
 #### 3.4: Generate Text with LoRA
 
 Make inference requests specifying the LoRA adapter:
@@ -237,6 +268,7 @@ curl -X POST http://localhost:30080/v1/completions \
   }'
 ```
 
+<!-- TOC ignore:true -->
 #### 3.5: Unload a LoRA Adapter
 
 When finished, you can unload the adapter by delete the CRD:
@@ -316,13 +348,13 @@ servingEngineSpec:
       pvcAccessMode:
         - ReadWriteOnce
 
-  # Shared storage for LoRA adapters
-  sharedPvcStorage:
-    size: "10Gi"
-    storageClass: "standard"
-    accessModes:
-      - ReadWriteMany
-    hostPath: "/data/shared-pvc-storage"
+# Shared storage for LoRA adapters
+sharedPvcStorage:
+  size: "10Gi"
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteMany
+  hostPath: "/data/shared-pvc-storage"
 
 # Enable the lora controller (required for LoRA adapters)
 loraController:
@@ -372,7 +404,8 @@ loraAdapters:
 
 ### Step 2: LoRA loading
 
-#### 2.1 Local LoRA Loading (Helm Approach)
+<!-- TOC ignore:true -->
+#### 2.1 Local LoRA Loading
 
 You can manually load lora adapters to the hostpath so that it can access by the lora controller and finish loading.
 
@@ -438,13 +471,13 @@ servingEngineSpec:
       pvcAccessMode:
         - ReadWriteOnce
 
-  # Shared storage for LoRA adapters
-  sharedPvcStorage:
-    size: "10Gi"
-    storageClass: "standard"
-    accessModes:
-      - ReadWriteMany
-    hostPath: "/data/shared-pvc-storage"
+# Shared storage for LoRA adapters
+sharedPvcStorage:
+  size: "10Gi"
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteMany
+  hostPath: "/data/shared-pvc-storage"
 
 # Enable the lora controller (required for LoRA adapters)
 loraController:
@@ -477,7 +510,8 @@ loraAdapters:
 helm install vllm vllm/vllm-stack -f tutorials/assets/values-09-lora-helm.yaml
 ```
 
-#### 2.2 HuggingFace LoRA Loading (Helm Approach)
+<!-- TOC ignore:true -->
+#### 2.2 HuggingFace LoRA Loading
 
 You can also directly load lora from huggingface by specify the adapter source type deploying with example 2 configuration:
 
@@ -527,13 +561,13 @@ servingEngineSpec:
       pvcAccessMode:
         - ReadWriteOnce
 
-  # Shared storage for LoRA adapters
-  sharedPvcStorage:
-    size: "10Gi"
-    storageClass: "standard"
-    accessModes:
-      - ReadWriteMany
-    hostPath: "/data/shared-pvc-storage"
+# Shared storage for LoRA adapters
+sharedPvcStorage:
+  size: "10Gi"
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteMany
+  hostPath: "/data/shared-pvc-storage"
 
 # Enable the lora controller (required for LoRA adapters)
 loraController:
@@ -584,8 +618,9 @@ loraAdapters:
 helm install vllm vllm/vllm-stack -f tutorials/assets/values-09-lora-helm.yaml
 ```
 
-### Step 3: Test vLLM with LoRA Support (Helm Approach)
+### Step 3: Test vLLM with LoRA Support
 
+<!-- TOC ignore:true -->
 #### 3.1: Get the LoRA model info
 
 You can get the LoRA info by querying the models endpoint
@@ -622,6 +657,7 @@ Expected output:
 }
 ```
 
+<!-- TOC ignore:true -->
 #### 3.2: Generate Text with LoRA
 
 Make inference requests specifying the LoRA adapter:
@@ -637,7 +673,7 @@ curl -X POST http://localhost:30080/v1/completions \
   }'
 ```
 
-### Step 4: Unload a LoRA Adapter (Helm Approach)
+### Step 4: Unload a LoRA Adapter
 
 When finished, you can unload the adapter by delete the lora cr:
 
