@@ -336,39 +336,12 @@ async def send_request_to_decode(
         "X-Request-Id": request_id,
     }
 
-    try:
-        async with client.stream(
-            "POST", endpoint, json=req_data, headers=headers
-        ) as response:
-            response.raise_for_status()
-            async for chunk in response.aiter_bytes():
-                yield chunk
-    except httpx.HTTPStatusError as e:
-        logger.error(f"HTTP error in decode request: {e}", exc_info=True)
-        try:
-            error_text = e.response.text
-        except Exception:
-            error_text = f"HTTP {e.response.status_code}"
-        # Yield error as JSON response
-        error_response = {
-            "error": {
-                "message": f"Backend error: {error_text}",
-                "type": "backend_error",
-                "code": e.response.status_code,
-            }
-        }
-        yield json.dumps(error_response).encode("utf-8")
-    except Exception as e:
-        logger.error(f"Unexpected error in decode request: {e}", exc_info=True)
-        # Yield error as JSON response
-        error_response = {
-            "error": {
-                "message": f"Internal server error: {str(e)}",
-                "type": "internal_error",
-                "code": 500,
-            }
-        }
-        yield json.dumps(error_response).encode("utf-8")
+    async with client.stream(
+        "POST", endpoint, json=req_data, headers=headers
+    ) as response:
+        response.raise_for_status()
+        async for chunk in response.aiter_bytes():
+            yield chunk
 
 
 async def route_disaggregated_prefill_request(
@@ -398,14 +371,26 @@ async def route_disaggregated_prefill_request(
         logger.error(f"HTTP error in prefiller: {e}", exc_info=True)
         return JSONResponse(
             status_code=e.response.status_code,
-            content={"error": f"Prefiller error: {e.response.text}"},
+            content={
+                "error": {
+                    "message": f"Prefiller error: {e.response.text}",
+                    "type": "prefiller_error",
+                    "code": e.response.status_code,
+                }
+            },
             headers={"X-Request-Id": request_id},
         )
     except Exception as e:
         logger.error(f"Unexpected error in prefiller: {e}", exc_info=True)
         return JSONResponse(
             status_code=500,
-            content={"error": f"Prefiller error: {str(e)}"},
+            content={
+                "error": {
+                    "message": f"Prefiller error: {str(e)}",
+                    "type": "prefiller_error",
+                    "code": 500,
+                }
+            },
             headers={"X-Request-Id": request_id},
         )
 
@@ -415,13 +400,28 @@ async def route_disaggregated_prefill_request(
                 request.app.state.decode_client, endpoint, request_json, request_id
             ):
                 yield chunk
-        except Exception as e:
-            logger.error(f"Error in generate_stream: {e}", exc_info=True)
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error in decoder: {e}", exc_info=True)
+            try:
+                error_text = e.response.text
+            except Exception:
+                error_text = f"HTTP {e.response.status_code}"
             # Yield error as JSON response
             error_response = {
                 "error": {
-                    "message": f"Streaming error: {str(e)}",
-                    "type": "streaming_error",
+                    "message": f"Decoder error: {error_text}",
+                    "type": "decoder_error",
+                    "code": e.response.status_code,
+                }
+            }
+            yield json.dumps(error_response).encode("utf-8")
+        except Exception as e:
+            logger.error(f"Unexpected error in decoder: {e}", exc_info=True)
+            # Yield error as JSON response
+            error_response = {
+                "error": {
+                    "message": f"Decoder error: {str(e)}",
+                    "type": "decoder_error",
                     "code": 500,
                 }
             }
