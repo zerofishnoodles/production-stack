@@ -336,12 +336,39 @@ async def send_request_to_decode(
         "X-Request-Id": request_id,
     }
 
-    async with client.stream(
-        "POST", endpoint, json=req_data, headers=headers
-    ) as response:
-        response.raise_for_status()
-        async for chunk in response.aiter_bytes():
-            yield chunk
+    try:
+        async with client.stream(
+            "POST", endpoint, json=req_data, headers=headers
+        ) as response:
+            response.raise_for_status()
+            async for chunk in response.aiter_bytes():
+                yield chunk
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error in decode request: {e}", exc_info=True)
+        try:
+            error_text = e.response.text
+        except Exception:
+            error_text = f"HTTP {e.response.status_code}"
+        # Yield error as JSON response
+        error_response = {
+            "error": {
+                "message": f"Backend error: {error_text}",
+                "type": "backend_error",
+                "code": e.response.status_code,
+            }
+        }
+        yield json.dumps(error_response).encode("utf-8")
+    except Exception as e:
+        logger.error(f"Unexpected error in decode request: {e}", exc_info=True)
+        # Yield error as JSON response
+        error_response = {
+            "error": {
+                "message": f"Internal server error: {str(e)}",
+                "type": "internal_error",
+                "code": 500,
+            }
+        }
+        yield json.dumps(error_response).encode("utf-8")
 
 
 async def route_disaggregated_prefill_request(
@@ -357,21 +384,48 @@ async def route_disaggregated_prefill_request(
     orig_max_tokens = request_json.get("max_tokens", 0)
     request_json["max_tokens"] = 1
     st = time.time()
-    await send_request_to_prefiller(
-        request.app.state.prefill_client, endpoint, request_json, request_id
-    )
-    et = time.time()
-    logger.info(f"{request_id} prefill time (TTFT): {et - st:.4f}")
-    logger.info(
-        f"Routing request {request_id} with session id None to {request.app.state.prefill_client.base_url} at {et}, process time = {et - in_router_time:.4f}"
-    )
-    request_json["max_tokens"] = orig_max_tokens
+    try:
+        await send_request_to_prefiller(
+            request.app.state.prefill_client, endpoint, request_json, request_id
+        )
+        et = time.time()
+        logger.info(f"{request_id} prefill time (TTFT): {et - st:.4f}")
+        logger.info(
+            f"Routing request {request_id} with session id None to {request.app.state.prefill_client.base_url} at {et}, process time = {et - in_router_time:.4f}"
+        )
+        request_json["max_tokens"] = orig_max_tokens
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error in prefiller: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=e.response.status_code,
+            content={"error": f"Prefiller error: {e.response.text}"},
+            headers={"X-Request-Id": request_id},
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in prefiller: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Prefiller error: {str(e)}"},
+            headers={"X-Request-Id": request_id},
+        )
 
     async def generate_stream():
-        async for chunk in send_request_to_decode(
-            request.app.state.decode_client, endpoint, request_json, request_id
-        ):
-            yield chunk
+        try:
+            async for chunk in send_request_to_decode(
+                request.app.state.decode_client, endpoint, request_json, request_id
+            ):
+                yield chunk
+        except Exception as e:
+            logger.error(f"Error in generate_stream: {e}", exc_info=True)
+            # Yield error as JSON response
+            error_response = {
+                "error": {
+                    "message": f"Streaming error: {str(e)}",
+                    "type": "streaming_error",
+                    "code": 500,
+                }
+            }
+            yield json.dumps(error_response).encode("utf-8")
 
     curr_time = time.time()
     logger.info(
