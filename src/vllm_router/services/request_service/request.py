@@ -336,39 +336,12 @@ async def send_request_to_decode(
         "X-Request-Id": request_id,
     }
 
-    try:
-        async with client.stream(
-            "POST", endpoint, json=req_data, headers=headers
-        ) as response:
-            response.raise_for_status()
-            async for chunk in response.aiter_bytes():
-                yield chunk
-    except httpx.HTTPStatusError as e:
-        logger.error(f"HTTP error in decode request: {e}", exc_info=True)
-        try:
-            error_text = e.response.text
-        except Exception:
-            error_text = f"HTTP {e.response.status_code}"
-        # Yield error as JSON response
-        error_response = {
-            "error": {
-                "message": f"Backend error: {error_text}",
-                "type": "backend_error",
-                "code": e.response.status_code,
-            }
-        }
-        yield json.dumps(error_response).encode("utf-8")
-    except Exception as e:
-        logger.error(f"Unexpected error in decode request: {e}", exc_info=True)
-        # Yield error as JSON response
-        error_response = {
-            "error": {
-                "message": f"Internal server error: {str(e)}",
-                "type": "internal_error",
-                "code": 500,
-            }
-        }
-        yield json.dumps(error_response).encode("utf-8")
+    async with client.stream(
+        "POST", endpoint, json=req_data, headers=headers
+    ) as response:
+        response.raise_for_status()
+        async for chunk in response.aiter_bytes():
+            yield chunk
 
 
 async def route_disaggregated_prefill_request(
