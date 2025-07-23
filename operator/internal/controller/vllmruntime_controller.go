@@ -50,6 +50,8 @@ type VLLMRuntimeReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=persistentvolumes,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -105,6 +107,40 @@ func (r *VLLMRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{Requeue: true}, nil
 	}
 
+	// Check if the pv already exists, if not create a new one
+	foundPV := &corev1.PersistentVolume{}
+	err = r.Get(ctx, types.NamespacedName{Name: "shared-pvc-storage", Namespace: vllmRuntime.Namespace}, foundPV)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new pv
+		pv := r.pvForVLLMRuntime(vllmRuntime)
+		log.Info("Creating a new PV", "PV.Namespace", pv.Namespace, "PV.Name", pv.Name)
+		err = r.Create(ctx, pv)
+		if err != nil {
+			log.Error(err, "Failed to create new PV", "PV.Namespace", pv.Namespace, "PV.Name", pv.Name)
+			return ctrl.Result{}, err
+		}
+	} else if err != nil {
+		log.Error(err, "Failed to get PV")
+		return ctrl.Result{}, err
+	}
+
+	// Check if the pvc already exists, if not create a new one
+	foundPVC := &corev1.PersistentVolumeClaim{}
+	err = r.Get(ctx, types.NamespacedName{Name: "shared-pvc-storage-claim", Namespace: vllmRuntime.Namespace}, foundPVC)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new pvc
+		pvc := r.pvcForVLLMRuntime(vllmRuntime)
+		log.Info("Creating a new PVC", "PVC.Namespace", pvc.Namespace, "PVC.Name", pvc.Name)
+		err = r.Create(ctx, pvc)
+		if err != nil {
+			log.Error(err, "Failed to create new PVC", "PVC.Namespace", pvc.Namespace, "PVC.Name", pvc.Name)
+			return ctrl.Result{}, err
+		}
+	} else if err != nil {
+		log.Error(err, "Failed to get PVC")
+		return ctrl.Result{}, err
+	}
+
 	// Check if the deployment already exists, if not create a new one
 	found := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: vllmRuntime.Name, Namespace: vllmRuntime.Namespace}, found)
@@ -148,10 +184,48 @@ func (r *VLLMRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
+func (r *VLLMRuntimeReconciler) pvForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *corev1.PersistentVolume {
+	return &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "shared-pvc-storage",
+			Namespace: vllmRuntime.Namespace,
+			Labels:    map[string]string{"app": vllmRuntime.Name},
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
+			StorageClassName: "",
+			Capacity:         corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("100Gi")},
+			PersistentVolumeSource: corev1.PersistentVolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/data/shared-pvc-storage",
+				},
+			},
+		},
+	}
+}
+
+func (r *VLLMRuntimeReconciler) pvcForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *corev1.PersistentVolumeClaim {
+	return &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "shared-pvc-storage-claim",
+			Namespace: vllmRuntime.Namespace,
+			Labels:    map[string]string{"app": vllmRuntime.Name},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
+			StorageClassName: &[]string{""}[0],
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("100Gi")},
+			},
+		},
+	}
+}
+
 // deploymentForVLLMRuntime returns a VLLMRuntime Deployment object
 func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *appsv1.Deployment {
-	labels := map[string]string{
-		"app": vllmRuntime.Name,
+	labels := map[string]string{"app": vllmRuntime.Name}
+	for k, v := range vllmRuntime.Labels {
+		labels[k] = v
 	}
 
 	// Define probes
@@ -178,7 +252,7 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 				Scheme: corev1.URISchemeHTTP,
 			},
 		},
-		InitialDelaySeconds: 240,
+		InitialDelaySeconds: 500,
 		PeriodSeconds:       10,
 		TimeoutSeconds:      3,
 		SuccessThreshold:    1,
@@ -258,6 +332,15 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 			Name:  "VLLM_USE_V1",
 			Value: "0",
 		})
+	}
+
+	if vllmRuntime.Spec.Model.EnableLoRA {
+		env = append(env,
+			corev1.EnvVar{
+				Name:  "VLLM_ALLOW_RUNTIME_LORA_UPDATING",
+				Value: "True",
+			},
+		)
 	}
 
 	// LM Cache configuration
@@ -424,6 +507,22 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 							Resources:      resources,
 							ReadinessProbe: readinessProbe,
 							LivenessProbe:  livenessProbe,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "shared-pvc-storage",
+									MountPath: "/data/shared-pvc-storage",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "shared-pvc-storage",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: "shared-pvc-storage-claim",
+								},
+							},
 						},
 					},
 				},

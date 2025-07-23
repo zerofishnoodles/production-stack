@@ -86,7 +86,12 @@ spec:
             requests:
               cpu: 10m
               memory: 64Mi
-          volumeMounts: []
-      volumes: []
+          volumeMounts:
+            - name: shared-pvc-storage
+              mountPath: /data/shared-pvc-storage
+      volumes:
+        - name: shared-pvc-storage
+          persistentVolumeClaim:
+            claimName: production-stack-shared-pvc-storage-claim
       serviceAccountName: production-stack-controller-manager
       terminationGracePeriodSeconds: 10
