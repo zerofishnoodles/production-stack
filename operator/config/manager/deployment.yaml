@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: production-stack-controller-manager
+  name: controller-manager
   namespace: production-stack-system
   labels:
     app.kubernetes.io/name: production-stack

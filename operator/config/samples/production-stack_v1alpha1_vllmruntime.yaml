@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/name: production-stack
     app.kubernetes.io/managed-by: kustomize
     model: "llama-3.1-8b-instruct"
-  name: llama3
+  name: vllmruntime-sample
 spec:
   # Model configuration
   model:

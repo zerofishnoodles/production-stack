@@ -107,40 +107,6 @@ func (r *VLLMRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	// Check if the pv already exists, if not create a new one
-	foundPV := &corev1.PersistentVolume{}
-	err = r.Get(ctx, types.NamespacedName{Name: "shared-pvc-storage", Namespace: vllmRuntime.Namespace}, foundPV)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new pv
-		pv := r.pvForVLLMRuntime(vllmRuntime)
-		log.Info("Creating a new PV", "PV.Namespace", pv.Namespace, "PV.Name", pv.Name)
-		err = r.Create(ctx, pv)
-		if err != nil {
-			log.Error(err, "Failed to create new PV", "PV.Namespace", pv.Namespace, "PV.Name", pv.Name)
-			return ctrl.Result{}, err
-		}
-	} else if err != nil {
-		log.Error(err, "Failed to get PV")
-		return ctrl.Result{}, err
-	}
-
-	// Check if the pvc already exists, if not create a new one
-	foundPVC := &corev1.PersistentVolumeClaim{}
-	err = r.Get(ctx, types.NamespacedName{Name: "shared-pvc-storage-claim", Namespace: vllmRuntime.Namespace}, foundPVC)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new pvc
-		pvc := r.pvcForVLLMRuntime(vllmRuntime)
-		log.Info("Creating a new PVC", "PVC.Namespace", pvc.Namespace, "PVC.Name", pvc.Name)
-		err = r.Create(ctx, pvc)
-		if err != nil {
-			log.Error(err, "Failed to create new PVC", "PVC.Namespace", pvc.Namespace, "PVC.Name", pvc.Name)
-			return ctrl.Result{}, err
-		}
-	} else if err != nil {
-		log.Error(err, "Failed to get PVC")
-		return ctrl.Result{}, err
-	}
-
 	// Check if the deployment already exists, if not create a new one
 	found := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: vllmRuntime.Name, Namespace: vllmRuntime.Namespace}, found)
@@ -184,43 +150,6 @@ func (r *VLLMRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
-func (r *VLLMRuntimeReconciler) pvForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *corev1.PersistentVolume {
-	return &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "shared-pvc-storage",
-			Namespace: vllmRuntime.Namespace,
-			Labels:    map[string]string{"app": vllmRuntime.Name},
-		},
-		Spec: corev1.PersistentVolumeSpec{
-			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
-			StorageClassName: "",
-			Capacity:         corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("100Gi")},
-			PersistentVolumeSource: corev1.PersistentVolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Path: "/data/shared-pvc-storage",
-				},
-			},
-		},
-	}
-}
-
-func (r *VLLMRuntimeReconciler) pvcForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *corev1.PersistentVolumeClaim {
-	return &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "shared-pvc-storage-claim",
-			Namespace: vllmRuntime.Namespace,
-			Labels:    map[string]string{"app": vllmRuntime.Name},
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
-			StorageClassName: &[]string{""}[0],
-			Resources: corev1.VolumeResourceRequirements{
-				Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("100Gi")},
-			},
-		},
-	}
-}
-
 // deploymentForVLLMRuntime returns a VLLMRuntime Deployment object
 func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *productionstackv1alpha1.VLLMRuntime) *appsv1.Deployment {
 	labels := map[string]string{"app": vllmRuntime.Name}
@@ -252,11 +181,11 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 				Scheme: corev1.URISchemeHTTP,
 			},
 		},
-		InitialDelaySeconds: 500,
-		PeriodSeconds:       10,
+		InitialDelaySeconds: 300,
+		PeriodSeconds:       20,
 		TimeoutSeconds:      3,
 		SuccessThreshold:    1,
-		FailureThreshold:    3,
+		FailureThreshold:    10,
 	}
 
 	// Build command line arguments
@@ -520,7 +449,7 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 							Name: "shared-pvc-storage",
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: "shared-pvc-storage-claim",
+									ClaimName: "production-stack-shared-pvc-storage-claim",
 								},
 							},
 						},
