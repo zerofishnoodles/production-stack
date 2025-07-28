@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY scripts/huggingface_downloader.py .
 
-RUN pip install --no-cache-dir huggingface-hub fastapi uvicorn logging
+RUN pip install --no-cache-dir huggingface-hub fastapi uvicorn pydantic
 
 ENV PORT=8000
 

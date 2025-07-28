@@ -1,29 +1,42 @@
 import logging
 import os
+from typing import Optional
 
 import fastapi
 import uvicorn
 from fastapi import HTTPException
 from huggingface_hub import snapshot_download
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
 app = fastapi.FastAPI()
 
 
+class DownloadRequest(BaseModel):
+    model_id: str
+    local_dir: str
+    token: Optional[str] = None
+
+
 @app.post("/model/download")
-async def download(request: fastapi.Request):
+async def download(request: DownloadRequest):
     try:
-        data = await request.json()
-        model_id = data.get("model_id")
-        local_dir = data.get("local_dir")
-        token = data.get("hf_token")
-        logger.info(f"Downloading {model_id} to {local_dir}")
-        os.makedirs(local_dir, exist_ok=True)
-        snapshot_download(model_id, local_dir=local_dir, token=token)
-        return {"message": f"Successfully downloaded {model_id} to {local_dir}"}
+        DOWNLOAD_BASE_DIR = os.path.abspath(
+            os.environ.get("LORA_DOWNLOAD_BASE_DIR", "/data/lora-adapters")
+        )
+
+        target_dir = os.path.abspath(os.path.join(DOWNLOAD_BASE_DIR, request.local_dir))
+        model_id = request.model_id
+        if not target_dir.startswith(DOWNLOAD_BASE_DIR):
+            raise HTTPException(status_code=400, detail="Invalid 'local_dir' provided.")
+
+        logger.info(f"Downloading {model_id} to {target_dir}")
+        os.makedirs(target_dir, exist_ok=True)
+        snapshot_download(model_id, local_dir=target_dir, token=request.token)
+        return {"message": f"Successfully downloaded {model_id} to {target_dir}"}
     except Exception as e:
-        logger.error(f"Error: {e}")
+        logger.exception(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
