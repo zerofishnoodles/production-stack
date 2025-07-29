@@ -9,6 +9,7 @@ from huggingface_hub import snapshot_download
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 app = fastapi.FastAPI()
 
