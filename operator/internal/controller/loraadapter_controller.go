@@ -227,9 +227,9 @@ func (r *LoraAdapterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if hasWaitingAdapters {
 		// If we have adapters waiting for pods, requeue more frequently
 		logger.Info("Some adapters are waiting for pods, requeuing with shorter interval")
-		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		return ctrl.Result{Requeue: true}, nil
 	}
-	return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+	return ctrl.Result{Requeue: true}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
