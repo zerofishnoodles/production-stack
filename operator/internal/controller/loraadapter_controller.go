@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -343,7 +342,7 @@ func (r *LoraAdapterReconciler) downloadHuggingFaceAdapter(ctx context.Context, 
 	}
 
 	// Download the adapter directly using command line tools
-	adapterPath := filepath.Join("/data/lora-adapters", source.AdapterName)
+	adapterPath := strings.ReplaceAll(source.AdapterName, "/", "-")
 
 	// Get the HuggingFace token from the secret
 	secret := &corev1.Secret{}
@@ -371,13 +370,17 @@ func (r *LoraAdapterReconciler) downloadHuggingFaceAdapter(ctx context.Context, 
 		"local_dir": adapterPath,
 	}
 
-	_, err = r.sendRequest(ctx, "POST", endpoint, payload, adapter)
+	body, err := r.sendRequest(ctx, "POST", endpoint, payload, adapter)
 	if err != nil {
 		return "", fmt.Errorf("failed to download adapter: %w", err)
 	}
 
 	// Update the adapter path in the spec
-	adapter.Spec.AdapterSource.AdapterPath = adapterPath
+	bodyMap := make(map[string]string)
+	if err := json.Unmarshal(body, &bodyMap); err != nil {
+		return "", fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+	adapter.Spec.AdapterSource.AdapterPath = bodyMap["path"]
 	if err := r.Update(ctx, adapter); err != nil {
 		return "", fmt.Errorf("failed to update adapter path: %w", err)
 	}

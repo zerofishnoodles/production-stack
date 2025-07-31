@@ -77,6 +77,7 @@ spec:
       resources:
         cpu: "0.5"
         memory: "128Mi"
+      mountPath: "/data"
 
   # Storage configuration
   storageConfig:
@@ -84,3 +85,4 @@ spec:
     storageClassName: ""
     size: "10Gi"
     accessMode: "ReadWriteMany"
+    mountPath: "/data"
