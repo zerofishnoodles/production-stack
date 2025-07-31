@@ -466,6 +466,31 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 		})
 	}
 
+	containers := []corev1.Container{
+		{
+			Name:            "vllm",
+			Image:           image,
+			ImagePullPolicy: imagePullPolicy,
+			Command:         []string{"/opt/venv/bin/vllm", "serve"},
+			Args:            args,
+			Env:             env,
+			Ports: []corev1.ContainerPort{
+				{
+					Name:          "http",
+					ContainerPort: vllmRuntime.Spec.VLLMConfig.Port,
+				},
+			},
+			Resources:      resources,
+			VolumeMounts:   volumeMounts,
+			ReadinessProbe: readinessProbe,
+			LivenessProbe:  livenessProbe,
+		},
+	}
+
+	if vllmRuntime.Spec.DeploymentConfig.SidecarConfig.Enabled {
+		containers = append(containers, r.buildSidecarContainer(vllmRuntime))
+	}
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vllmRuntime.Name,
@@ -486,27 +511,7 @@ func (r *VLLMRuntimeReconciler) deploymentForVLLMRuntime(vllmRuntime *production
 				Spec: corev1.PodSpec{
 					ImagePullSecrets: imagePullSecrets,
 					Volumes:          volumes,
-					Containers: []corev1.Container{
-						{
-							Name:            "vllm",
-							Image:           image,
-							ImagePullPolicy: imagePullPolicy,
-							Command:         []string{"/opt/venv/bin/vllm", "serve"},
-							Args:            args,
-							Env:             env,
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "http",
-									ContainerPort: vllmRuntime.Spec.VLLMConfig.Port,
-								},
-							},
-							Resources:      resources,
-							VolumeMounts:   volumeMounts,
-							ReadinessProbe: readinessProbe,
-							LivenessProbe:  livenessProbe,
-						},
-						r.buildSidecarContainer(vllmRuntime),
-					},
+					Containers:       containers,
 				},
 			},
 		},
@@ -569,17 +574,26 @@ func (r *VLLMRuntimeReconciler) buildSidecarContainer(vllmRuntime *productionsta
 	if sidecarConfig.Resources.CPU != "" {
 		sidecarResources.Requests[corev1.ResourceCPU] = resource.MustParse(sidecarConfig.Resources.CPU)
 		sidecarResources.Limits[corev1.ResourceCPU] = resource.MustParse(sidecarConfig.Resources.CPU)
+	} else {
+		sidecarResources.Requests[corev1.ResourceCPU] = resource.MustParse("0.5")
+		sidecarResources.Limits[corev1.ResourceCPU] = resource.MustParse("0.5")
 	}
 
 	if sidecarConfig.Resources.Memory != "" {
 		sidecarResources.Requests[corev1.ResourceMemory] = resource.MustParse(sidecarConfig.Resources.Memory)
 		sidecarResources.Limits[corev1.ResourceMemory] = resource.MustParse(sidecarConfig.Resources.Memory)
+	} else {
+		sidecarResources.Requests[corev1.ResourceMemory] = resource.MustParse("128Mi")
+		sidecarResources.Limits[corev1.ResourceMemory] = resource.MustParse("128Mi")
 	}
 
 	if sidecarConfig.Resources.GPU != "" {
 		gpuResource := resource.MustParse(sidecarConfig.Resources.GPU)
 		sidecarResources.Requests["nvidia.com/gpu"] = gpuResource
 		sidecarResources.Limits["nvidia.com/gpu"] = gpuResource
+	} else {
+		sidecarResources.Requests["nvidia.com/gpu"] = resource.MustParse("0")
+		sidecarResources.Limits["nvidia.com/gpu"] = resource.MustParse("0")
 	}
 
 	// Get sidecar image
