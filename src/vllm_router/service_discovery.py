@@ -1007,6 +1007,10 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
                 ):
                     service = event["object"]
                     event_type = event["type"]
+                    if event_type == "DELETED":
+                        if service.metadata.name in self.available_engines:
+                            self._delete_engine(service.metadata.name)
+                        continue
                     service_name = service.metadata.name
                     is_service_ready = self._check_service_ready(
                         service_name, self.namespace
