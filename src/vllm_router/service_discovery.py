@@ -350,7 +350,7 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
         label_selector=None,
         prefill_model_labels: List[str] | None = None,
         decode_model_labels: List[str] | None = None,
-        watcher_timeout_seconds: int = 30,
+        watcher_timeout_seconds: int = 0,
     ):
         """
         Initialize the Kubernetes service discovery module. This module
@@ -364,7 +364,7 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
             namespace: the namespace of the engine pods
             port: the port of the engines
             label_selector: the label selector of the engines
-            watcher_timeout_seconds: timeout in seconds for Kubernetes watcher streams (default: 30)
+            watcher_timeout_seconds: timeout in seconds for Kubernetes watcher streams (default: 0)
         """
         self.app = app
         self.namespace = namespace
@@ -581,6 +581,11 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
                     event_type = event["type"]
                     pod_name = pod.metadata.name
                     pod_ip = pod.status.pod_ip
+
+                    if event_type == "DELETED":
+                        if pod_name in self.available_engines:
+                            self._delete_engine(pod_name)
+                        continue
 
                     # Check if pod is terminating
                     is_pod_terminating = self._is_pod_terminating(pod)
