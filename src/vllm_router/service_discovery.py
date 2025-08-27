@@ -351,6 +351,7 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
         prefill_model_labels: List[str] | None = None,
         decode_model_labels: List[str] | None = None,
         watcher_timeout_seconds: int = 0,
+        health_check_timeout_seconds: int = 10,
     ):
         """
         Initialize the Kubernetes service discovery module. This module
@@ -373,6 +374,7 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
         self.available_engines_lock = threading.Lock()
         self.label_selector = label_selector
         self.watcher_timeout_seconds = watcher_timeout_seconds
+        self.health_check_timeout_seconds = health_check_timeout_seconds
 
         # Init kubernetes watcher
         try:
@@ -426,7 +428,9 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             sleep = response.json()["is_sleeping"]
             return sleep
@@ -508,7 +512,9 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             models = response.json()["data"]
 
@@ -540,7 +546,9 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             models = response.json()["data"]
             # Create a dictionary of model information
@@ -760,7 +768,8 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
         label_selector=None,
         prefill_model_labels: List[str] | None = None,
         decode_model_labels: List[str] | None = None,
-        watcher_timeout_seconds: int = 30,
+        watcher_timeout_seconds: int = 0,
+        health_check_timeout_seconds: int = 10,
     ):
         """
         Initialize the Kubernetes service discovery module. This module
@@ -789,7 +798,8 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
             namespace: the namespace of the engine services
             port: the port of the engines
             label_selector: the label selector of the engines
-            watcher_timeout_seconds: timeout in seconds for Kubernetes watcher streams (default: 30)
+            watcher_timeout_seconds: timeout in seconds for Kubernetes watcher streams (default: 0)
+            health_check_timeout_seconds: timeout in seconds for health check requests (default: 10)
         """
         self.app = app
         self.namespace = namespace
@@ -798,6 +808,7 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
         self.available_engines_lock = threading.Lock()
         self.label_selector = label_selector
         self.watcher_timeout_seconds = watcher_timeout_seconds
+        self.health_check_timeout_seconds = health_check_timeout_seconds
 
         # Init kubernetes watcher
         try:
@@ -842,7 +853,9 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             sleep = response.json()["is_sleeping"]
             return sleep
@@ -936,7 +949,9 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             models = response.json()["data"]
 
@@ -968,7 +983,9 @@ class K8sServiceNameServiceDiscovery(ServiceDiscovery):
             if VLLM_API_KEY := os.getenv("VLLM_API_KEY"):
                 logger.info("Using vllm server authentication")
                 headers = {"Authorization": f"Bearer {VLLM_API_KEY}"}
-            response = requests.get(url, headers=headers)
+            response = requests.get(
+                url, headers=headers, timeout=self.health_check_timeout_seconds
+            )
             response.raise_for_status()
             models = response.json()["data"]
             # Create a dictionary of model information
