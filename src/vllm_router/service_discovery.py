@@ -662,6 +662,14 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
             # Store model information in the endpoint info
             self.available_engines[engine_name].model_info = model_info
 
+        try:
+            fut = asyncio.run_coroutine_threadsafe(
+                self.initialize_client_sessions(), self.app.state.event_loop
+            )
+            fut.result()
+        except Exception as e:
+            logger.error(f"Error initializing client sessions: {e}")
+
     def _delete_engine(self, engine_name: str):
         logger.info(f"Serving engine {engine_name} is deleted")
         with self.available_engines_lock:
@@ -747,6 +755,9 @@ class K8sPodIPServiceDiscovery(ServiceDiscovery):
         ):
             endpoint_infos = self.get_endpoint_info()
             for endpoint_info in endpoint_infos:
+                logger.info(
+                    f"Initializing client session for endpoint {endpoint_info.url}"
+                )
                 if endpoint_info.model_label in self.prefill_model_labels:
                     self.app.state.prefill_client = aiohttp.ClientSession(
                         base_url=endpoint_info.url,

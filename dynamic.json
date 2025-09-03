@@ -1,0 +1,8 @@
+{
+    "service_discovery": "static",
+    "static_backends": "http://localhost:30081",
+    "routing_logic": "roundrobin",
+    "static_models": "facebook/opt-125m",
+    "static_model_types": "chat"
+
+}
