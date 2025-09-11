@@ -339,7 +339,7 @@ spec:
           {{-   end }}
           {{-  if hasKey $modelSpec.lmcacheConfig "distributedUrl" }}
           - name: LMCACHE_DISTRIBUTED_URL
-            value: {{ $modelSpec.lmcacheConfig.distributedUrl | quote }}
+            value: "{{ .Release.Name }}-{{ $modelSpec.name }}-engine-service:{{ $modelSpec.lmcacheConfig.distributedUrl }}"
           {{-   end }}
           {{- end }}
           {{- if or .Values.servingEngineSpec.configs $modelSpec.envFromSecret }}

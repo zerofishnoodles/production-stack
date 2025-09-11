@@ -295,6 +295,7 @@ class KvawareRouter(RoutingInterface):
         msg = LookupMsg(tokens=token_ids, event_id=event_id)
         instance_id = await self.query_manager(msg)
         matched_tokens = math.inf
+        logger.info(f"Instance id: {instance_id}")
         if len(list(instance_id.layout_info.keys())) > 0:
             matched_instance_id = list(instance_id.layout_info.keys())[
                 0

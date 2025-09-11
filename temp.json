@@ -1,0 +1,8 @@
+{
+    "service_discovery": "static",
+    "routing_logic": "roundrobin",
+    "static_backends": "http://localhost:8001,http://localhost:8002",
+    "static_models": "meta-llama/Llama-3.1-8B,meta-llama/Llama-3.2-1B",
+    "static_model_types": "chat,chat",
+    "static_backend_health_checks": true
+}
